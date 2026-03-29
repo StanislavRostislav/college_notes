@@ -12,14 +12,14 @@ import crud
 
 from fastapi.responses import HTMLResponse
 
+app = FastAPI()
+
 @app.get("/upload", response_class=HTMLResponse)
 def upload_page(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
 
 models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
 
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
