@@ -15,6 +15,9 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
 templates = Jinja2Templates(directory="templates")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
