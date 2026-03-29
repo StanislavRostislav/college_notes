@@ -10,24 +10,22 @@ from database import SessionLocal, engine
 import models
 import crud
 
-from fastapi.responses import HTMLResponse
-
+# ✅ СНАЧАЛА создаём app
 app = FastAPI()
 
-@app.get("/upload", response_class=HTMLResponse)
-def upload_page(request: Request):
-    return templates.TemplateResponse("upload.html", {"request": request})
-
-
+# ✅ потом всё остальное
 models.Base.metadata.create_all(bind=engine)
 
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
 templates = Jinja2Templates(directory="templates")
+
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+# ✅ ТЕПЕРЬ можно писать роуты
 
 @app.get("/", response_class=HTMLResponse)
 def read_notes(request: Request, search: str = "", subject: str = "Все"):
@@ -40,6 +38,12 @@ def read_notes(request: Request, search: str = "", subject: str = "Все"):
         "search": search,
         "subject": subject
     })
+
+
+# 🔥 ВАЖНО — ЭТОТ РОУТ ДОЛЖЕН БЫТЬ ПОСЛЕ app
+@app.get("/upload", response_class=HTMLResponse)
+def upload_page(request: Request):
+    return templates.TemplateResponse("upload.html", {"request": request})
 
 
 @app.post("/upload")
@@ -60,29 +64,4 @@ def upload_note(
     crud.create_note(db, title, subject, category, filename)
     db.close()
 
-    return RedirectResponse("/", status_code=303)
-
-
-@app.get("/download/{note_id}")
-def download(note_id: int):
-    db = SessionLocal()
-    crud.add_download(db, note_id)
-    note = db.query(models.Note).get(note_id)
-    db.close()
-    return RedirectResponse(f"/uploads/{note.filename}")
-
-
-@app.post("/like/{note_id}")
-def like(note_id: int):
-    db = SessionLocal()
-    crud.add_like(db, note_id)
-    db.close()
-    return RedirectResponse("/", status_code=303)
-
-
-@app.post("/comment/{note_id}")
-def comment(note_id: int, text: str = Form(...)):
-    db = SessionLocal()
-    crud.add_comment(db, note_id, text)
-    db.close()
     return RedirectResponse("/", status_code=303)
