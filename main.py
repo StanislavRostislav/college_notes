@@ -10,6 +10,13 @@ from database import SessionLocal, engine
 import models
 import crud
 
+from fastapi.responses import HTMLResponse
+
+@app.get("/upload", response_class=HTMLResponse)
+def upload_page(request: Request):
+    return templates.TemplateResponse("upload.html", {"request": request})
+
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
