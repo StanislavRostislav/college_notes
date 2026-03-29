@@ -1,78 +1,65 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Конспекты">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Загрузка конспекта</title>
+    <title>Загрузка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="/static/manifest.json">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2f3, #dfe9f3);
         }
-        .card-upload {
+        .card {
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: none;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
-        }
-        .btn-back {
-            border-radius: 50px;
         }
     </style>
 </head>
+
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card card-upload">
-                    <div class="card-body p-4">
-                        <h2 class="card-title text-center mb-4">
-                            <i class="bi bi-cloud-upload-fill"></i> Загрузить конспект
-                        </h2>
-                        <form action="/upload" method="post" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Название</label>
-                                <input type="text" class="form-control" id="title" name="title" placeholder="Например: Лекция 1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subject" class="form-label">Предмет</label>
-                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Например: Математика" required>
-                            </div>
-                            <div class="mb-4">
-                                <label for="file" class="form-label">Файл (PDF, DOCX, изображение)</label>
-                                <input type="file" class="form-control" id="file" name="file" required>
-                                <div class="form-text">Максимальный размер — 10 МБ (можно увеличить в настройках)</div>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="bi bi-check-lg"></i> Загрузить
-                                </button>
-                                <a href="/" class="btn btn-outline-secondary btn-back">
-                                    <i class="bi bi-arrow-left"></i> На главную
-                                </a>
-                            </div>
-                        </form>
-                    </div>
+
+<div class="container py-5">
+    <div class="col-md-6 mx-auto">
+
+        <div class="card p-4 shadow">
+
+            <h3 class="mb-4 text-center">📤 Загрузить конспект</h3>
+
+            <form action="/upload" method="post" enctype="multipart/form-data">
+
+                <div class="mb-3">
+                    <label class="form-label">Название</label>
+                    <input type="text" name="title" class="form-control" required>
                 </div>
-            </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Предмет</label>
+                    <input type="text" name="subject" class="form-control" placeholder="Математика" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Тип</label>
+                    <input type="text" name="category" class="form-control" placeholder="Лекция / Практика" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Файл</label>
+                    <input type="file" name="file" class="form-control" required>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary">Загрузить</button>
+                    <a href="/" class="btn btn-secondary">Назад</a>
+                </div>
+
+            </form>
+
         </div>
+
     </div>
-    <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/static/sw.js')
-            .then(reg => console.log('SW registered', reg))
-            .catch(err => console.log('SW registration failed', err));
-    }
-</script>
+</div>
+
 </body>
 </html>
