@@ -3,3 +3,4 @@ __pycache__/
 *.pyc 
 notes.db 
 .vscode/ 
+uploads/ 
