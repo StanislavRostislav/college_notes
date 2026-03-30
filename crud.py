@@ -15,7 +15,9 @@ def create_note(db, title, subject, category, filename):
 
 
 def get_notes(db):
-    return db.query(models.Note).all()
+    return db.query(models.Note).options(
+        joinedload(models.Note.comments)
+    ).all()
 
 
 def like_note(db, note_id):
