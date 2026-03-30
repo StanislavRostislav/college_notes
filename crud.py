@@ -1,5 +1,4 @@
-from sqlalchemy.orm import joinedload
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import models
 
 def create_note(db, title, subject, category, filename):
