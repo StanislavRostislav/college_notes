@@ -14,7 +14,7 @@ class Note(Base):
     downloads = Column(Integer, default=0)
     likes = Column(Integer, default=0)
 
-    comments = relationship("Comment", back_populates="note")
+    comments = relationship("Comment", back_populates="note", lazy="joined")
 
 
 class Comment(Base):
