@@ -13,8 +13,10 @@ import crud
 
 app = FastAPI()
 
+# создаём таблицы
 models.Base.metadata.create_all(bind=engine)
 
+# папка uploads
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
@@ -24,35 +26,28 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# ------------------ ГЛАВНАЯ ------------------
 @app.get("/", response_class=HTMLResponse)
-def read_notes(request: Request):
+def read_notes(request: Request, search: str = "", subject: str = "Все"):
     db = SessionLocal()
-    notes = crud.get_notes(db)
-
-   @app.get("/", response_class=HTMLResponse)
-def read_notes(request: Request):
-    db = SessionLocal()
-    notes = crud.get_notes(db)
+    notes = crud.get_notes(db, search, subject)
     db.close()
 
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "notes": notes
-    })
-
-    db.close()
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "notes": notes
+        "notes": notes,
+        "search": search,
+        "subject": subject
     })
 
 
+# ------------------ СТРАНИЦА ЗАГРУЗКИ ------------------
 @app.get("/upload", response_class=HTMLResponse)
 def upload_page(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
 
+# ------------------ ЗАГРУЗКА ------------------
 @app.post("/upload")
 def upload_note(
     title: str = Form(...),
@@ -62,31 +57,32 @@ def upload_note(
 ):
     db = SessionLocal()
 
-    # 🔥 уникальное имя файла
-    unique_name = f"{uuid.uuid4()}_{file.filename}"
-    path = f"uploads/{unique_name}"
+    # уникальное имя файла (чтобы старые не удалялись)
+    ext = file.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = f"uploads/{filename}"
 
     with open(path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    crud.create_note(db, title, subject, category, unique_name)
+    crud.create_note(db, title, subject, category, filename)
     db.close()
 
     return RedirectResponse("/", status_code=303)
 
 
-# ✅ скачать
+# ------------------ СКАЧАТЬ ------------------
 @app.get("/download/{note_id}")
 def download(note_id: int):
     db = SessionLocal()
     note = crud.get_note(db, note_id)
     db.close()
 
-    if note:
-        return FileResponse(f"uploads/{note.filename}", filename=note.filename)
+    file_path = f"uploads/{note.filename}"
+    return FileResponse(path=file_path, filename=note.filename)
 
 
-# ✅ лайк
+# ------------------ ЛАЙК ------------------
 @app.post("/like/{note_id}")
 def like(note_id: int):
     db = SessionLocal()
@@ -95,7 +91,7 @@ def like(note_id: int):
     return RedirectResponse("/", status_code=303)
 
 
-# ✅ комментарий
+# ------------------ КОММЕНТ ------------------
 @app.post("/comment/{note_id}")
 def comment(note_id: int, text: str = Form(...)):
     db = SessionLocal()
