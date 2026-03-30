@@ -1,3 +1,4 @@
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import Session
 import models
 
