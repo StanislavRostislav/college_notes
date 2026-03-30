@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <a class="back-link" href="/">← На главную</a>
+            <h1>Регистрация</h1>
+            <p class="auth-subtitle">Создай аккаунт, чтобы загружать свои материалы.</p>
+
+            {% if error %}
+                <div class="alert">{{ error }}</div>
+            {% endif %}
+
+            <form action="/register" method="post" class="auth-form">
+                <input class="input" type="text" name="username" placeholder="Логин" required>
+                <input class="input" type="password" name="password" placeholder="Пароль" required>
+                <button class="btn btn-primary" type="submit">Создать аккаунт</button>
+            </form>
+
+            <p class="hint">Уже есть аккаунт? <a href="/login">Войти</a></p>
+        </div>
+    </div>
+</body>
+</html>
