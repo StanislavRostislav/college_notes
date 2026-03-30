@@ -10,11 +10,9 @@ class Note(Base):
     subject = Column(String)
     category = Column(String)
     filename = Column(String)
-
-    downloads = Column(Integer, default=0)
     likes = Column(Integer, default=0)
 
-    comments = relationship("Comment", back_populates="note", lazy="joined")
+    comments = relationship("Comment", back_populates="note", cascade="all, delete")
 
 
 class Comment(Base):
