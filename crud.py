@@ -14,10 +14,18 @@ def create_note(db, title, subject, category, filename):
     return note
 
 
-def get_notes(db):
-    return db.query(models.Note).options(
+def get_notes(db, search="", subject="Все"):
+    query = db.query(models.Note).options(
         joinedload(models.Note.comments)
-    ).all()
+    )
+
+    if search:
+        query = query.filter(models.Note.title.ilike(f"%{search}%"))
+
+    if subject != "Все":
+        query = query.filter(models.Note.subject == subject)
+
+    return query.all()
 
 
 def like_note(db, note_id):
