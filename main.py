@@ -29,9 +29,16 @@ def read_notes(request: Request):
     db = SessionLocal()
     notes = crud.get_notes(db)
 
-    # 🔥 фикс ошибки comments
-    for note in notes:
-        note.comments = note.comments
+   @app.get("/", response_class=HTMLResponse)
+def read_notes(request: Request):
+    db = SessionLocal()
+    notes = crud.get_notes(db)
+    db.close()
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "notes": notes
+    })
 
     db.close()
 
