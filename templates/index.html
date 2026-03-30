@@ -1,94 +1,37 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Конспекты студентов</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="manifest" href="/static/manifest.json">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
-
-    <style>
-        body { background: #f8f9fa; }
-        .card { border-radius: 15px; }
-        iframe { border-radius: 10px; }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
 
-<div class="container py-4">
+<h1>📚 College Notes</h1>
 
-    <h2 class="mb-4">📚 Конспекты студентов</h2>
+<a href="/upload">Загрузить</a>
+<a href="/login">Войти</a>
 
-    <!-- 🔍 Поиск и фильтр -->
-    <form method="get" class="row g-2 mb-4">
-        <div class="col-md-6">
-            <input type="text" name="search" class="form-control" placeholder="Поиск..." value="{{ search }}">
-        </div>
-        <div class="col-md-4">
-            <select name="subject" class="form-select">
-                <option {% if subject == "Все" %}selected{% endif %}>Все</option>
-                <option {% if subject == "Математика" %}selected{% endif %}>Математика</option>
-                <option {% if subject == "Физика" %}selected{% endif %}>Физика</option>
-                <option {% if subject == "Информатика" %}selected{% endif %}>Информатика</option>
-            </select>
-        </div>
-        <div class="col-md-2 d-grid">
-            <button class="btn btn-primary">Найти</button>
-        </div>
+<div class="grid">
+{% for note in notes %}
+<div class="card">
+    <h2>{{note.title}}</h2>
+    <p>{{note.subject}} | {{note.category}}</p>
+    <p>Автор: {{note.owner.username}}</p>
+
+    <a href="/download/{{note.id}}">📥 Скачать</a>
+
+    <form action="/like/{{note.id}}" method="post">
+        <button>❤️ {{note.likes}}</button>
     </form>
 
-    <a href="/upload" class="btn btn-success mb-4">➕ Загрузить конспект</a>
+    <form action="/comment/{{note.id}}" method="post">
+        <input name="text" placeholder="Комментарий">
+    </form>
 
-    <!-- 📄 Список -->
-    <div class="row">
-
-    {% for note in notes %}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm p-3">
-
-                <h5>{{ note.title }}</h5>
-                <p class="text-muted">{{ note.subject }} | {{ note.category }}</p>
-
-                <!-- 📊 -->
-                <p>
-                    ⬇ {{ note.downloads }} |
-                    👍 {{ note.likes }}
-                </p>
-
-                <!-- 🔘 Кнопки -->
-                <div class="d-flex gap-2 mb-2">
-                    <a href="/download/{{ note.id }}" class="btn btn-outline-primary btn-sm">Скачать</a>
-
-                    <form action="/like/{{ note.id }}" method="post">
-                        <button class="btn btn-outline-success btn-sm">👍</button>
-                    </form>
-                </div>
-
-                <!-- 📄 Превью -->
-                {% if note.filename.endswith('.pdf') %}
-                    <iframe src="/uploads/{{ note.filename }}" width="100%" height="200"></iframe>
-                {% endif %}
-
-                <!-- 💬 Комменты -->
-                <form action="/comment/{{ note.id }}" method="post" class="mt-2">
-                    <input name="text" class="form-control form-control-sm" placeholder="Комментарий">
-                </form>
-
-                <div class="mt-2">
-                    {% for c in note.comments %}
-                        <div class="small text-muted">💬 {{ c.text }}</div>
-                    {% endfor %}
-                </div>
-
-            </div>
-        </div>
+    {% for c in note.comments %}
+        <p>💬 {{c.text}}</p>
     {% endfor %}
-
-    </div>
-
+</div>
+{% endfor %}
 </div>
 
 </body>
