@@ -3,21 +3,6 @@ async function like(id) {
     location.reload();
 }
 
-async function comment(id) {
-    const input = document.getElementById(`comment-${id}`);
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    await fetch(`/comment/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `text=${encodeURIComponent(text)}`
-    });
-
-    location.reload();
-}
-
 function searchNotes() {
     const input = document.getElementById("search");
     if (!input) return;
