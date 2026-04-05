@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Пользователи</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">🏆</div>
+                <div class="brand-text">
+                    <h1>Лидерборд пользователей</h1>
+                    <p>Лучшие авторы платформы</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
+                <a class="nav-link" href="/">Главная</a>
+                {% if user %}
+                    <a class="nav-link" href="/profile">Профиль</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="leaderboard-page">
+            {% for u in users %}
+                <div class="leader-row">
+                    <div class="leader-rank-big">#{{ loop.index }}</div>
+
+                    <div class="leader-main">
+                        <div class="leader-name">{{ u.username }}</div>
+                        <div class="leader-role">{{ "Преподаватель" if u.role == "teacher" else "Студент" }}</div>
+                    </div>
+
+                    <div class="leader-stats">
+                        <div><strong>{{ u.notes_count }}</strong><span>материалов</span></div>
+                        <div><strong>{{ u.likes_sum }}</strong><span>лайков</span></div>
+                        <div><strong>{{ u.views_sum }}</strong><span>просмотров</span></div>
+                        <div><strong>{{ u.downloads_sum }}</strong><span>скачиваний</span></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
