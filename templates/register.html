@@ -1,23 +1,25 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <div class="page">
         <div class="navbar">
             <div class="brand">
-                <div class="brand-logo">📚</div>
+                <div class="brand-logo">📝</div>
                 <div class="brand-text">
-                    <h1>College Notes</h1>
-                    <p>Создание аккаунта</p>
+                    <h1>Регистрация</h1>
+                    <p>Выбери роль и создай аккаунт</p>
                 </div>
             </div>
 
             <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/login">Вход</a>
             </div>
@@ -25,8 +27,8 @@
 
         <div class="center-wrap">
             <div class="auth-card">
-                <h2>📝 Регистрация</h2>
-                <p>Создай аккаунт, чтобы загружать свои конспекты.</p>
+                <h2>Создание аккаунта</h2>
+                <p>Студенты загружают материалы и попадают в рейтинг. Преподаватели модерируют систему.</p>
 
                 {% if error %}
                     <div class="error">{{ error }}</div>
@@ -35,6 +37,12 @@
                 <form class="form" method="post">
                     <input name="username" placeholder="Логин" required>
                     <input name="password" type="password" placeholder="Пароль" required>
+
+                    <select class="form-select" name="role">
+                        <option value="student">Студент</option>
+                        <option value="teacher">Преподаватель</option>
+                    </select>
+
                     <button class="btn btn-primary" type="submit">Создать аккаунт</button>
                 </form>
             </div>
