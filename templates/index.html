@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>College Notes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <div class="page">
@@ -19,11 +19,15 @@
             </div>
 
             <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link" href="/users">Пользователи</a>
                 {% if user %}
                     <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
                     <a class="nav-link" href="/profile">Профиль</a>
-                    <a class="nav-link" href="/dashboard">Админ</a>
+                    {% if user.role == "teacher" %}
+                        <a class="nav-link" href="/dashboard">Панель преподавателя</a>
+                    {% endif %}
                     <a class="nav-link" href="/logout">Выйти ({{ user.username }})</a>
                 {% else %}
                     <a class="nav-link" href="/login">Вход</a>
@@ -33,8 +37,23 @@
         </div>
 
         <div class="hero">
-            <h2>Находи, загружай, сохраняй и обсуждай конспекты</h2>
-            <p>Полноценная учебная платформа для материалов колледжа: конспекты, методички, практики, обсуждения и быстрый доступ к файлам.</p>
+            <h2>Загружай материалы, попадай в топ и собирай лайки</h2>
+            <p>Студенты делятся конспектами и практиками, преподаватели модерируют материалы, а лучшие авторы попадают в рейтинг.</p>
+        </div>
+
+        <div class="leaderboard-box">
+            <div class="section-title">🏆 Топ авторов</div>
+            <div class="leaderboard-mini">
+                {% for u in top_users %}
+                    <div class="leader-mini-card">
+                        <div class="leader-rank">#{{ loop.index }}</div>
+                        <div class="leader-info">
+                            <strong>{{ u.username }}</strong>
+                            <span>{{ u.role }} • {{ u.notes_count }} материалов • {{ u.likes_sum }} лайков</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
 
         <form method="get" class="toolbar">
@@ -69,11 +88,12 @@
                         <option value="new" {% if sort == "new" %}selected{% endif %}>Новые</option>
                         <option value="popular" {% if sort == "popular" %}selected{% endif %}>По лайкам</option>
                         <option value="views" {% if sort == "views" %}selected{% endif %}>По просмотрам</option>
+                        <option value="downloads" {% if sort == "downloads" %}selected{% endif %}>По скачиваниям</option>
                     </select>
                 </div>
 
-                <div class="stat-card" style="display:flex;align-items:end;">
-                    <button class="btn btn-primary" type="submit" style="width:100%;">Применить</button>
+                <div class="stat-card stat-card-button">
+                    <button class="btn btn-primary" type="submit">Применить</button>
                 </div>
             </div>
         </form>
@@ -82,17 +102,20 @@
             <div class="grid">
                 {% for note in notes %}
                     {% set ext = note.filename.split('.')[-1].lower() %}
-                    <div class="note-card card">
+                    <div class="note-card">
                         <div class="note-badges">
                             <span class="badge">{{ note.subject }}</span>
                             <span class="badge badge-green">{{ note.category }}</span>
+                            {% if note.status == "pending" %}
+                                <span class="badge badge-pending">На модерации</span>
+                            {% endif %}
                         </div>
 
                         <div class="note-title">{{ note.title }}</div>
                         <div class="note-meta">
                             Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
-                            Просмотры: {{ note.views }} • Лайки: {{ note.likes }} • В избранном: {{ note.favorites|length }}<br>
-                            Загружено: {{ note.created_at }}
+                            👁 {{ note.views }} • ❤️ {{ note.likes }} • ⬇ {{ note.downloads }} • ⭐ {{ note.favorites|length }}<br>
+                            {{ note.created_at }}
                         </div>
 
                         {% if ext == 'pdf' %}
@@ -100,13 +123,16 @@
                         {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
                             <img src="/uploads/{{ note.filename }}" class="preview-image">
                         {% else %}
-                            <div class="empty-state" style="padding:18px;">📄 Предпросмотр недоступен</div>
+                            <div class="preview-placeholder">📄 Превью недоступно</div>
                         {% endif %}
 
-                        <div class="actions" style="margin-top:16px;">
+                        <div class="actions">
                             <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
                             <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
-                            <button class="btn btn-like" onclick="like({{ note.id }})">❤️ {{ note.likes }}</button>
+
+                            <form action="/like/{{ note.id }}" method="post" style="display:inline;">
+                                <button class="btn btn-like" type="submit">❤️ {{ note.likes }}</button>
+                            </form>
 
                             {% if user %}
                                 <form action="/favorite/{{ note.id }}" method="post" style="display:inline;">
@@ -119,8 +145,8 @@
             </div>
         {% else %}
             <div class="empty-state">
-                <h3>Пока нет конспектов</h3>
-                <p>Загрузи первый материал и он сразу появится здесь.</p>
+                <h3>Пока нет материалов</h3>
+                <p>Стань первым, кто загрузит полезный конспект.</p>
             </div>
         {% endif %}
     </div>
