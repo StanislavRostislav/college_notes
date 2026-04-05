@@ -1,134 +1,83 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    font-family: 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at top, #0f172a, #020617);
-    color: #e2e8f0;
-    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI';
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: white;
 }
 
-/* 🔥 NAVBAR */
+/* NAVBAR */
 .navbar {
     display: flex;
     justify-content: space-between;
-    padding: 15px 30px;
-    background: rgba(15, 23, 42, 0.9);
+    padding: 15px 40px;
+    background: rgba(0,0,0,0.5);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid #1e293b;
 }
 
 .navbar a {
     color: #94a3b8;
     text-decoration: none;
     margin-left: 20px;
-    transition: 0.2s;
 }
 
 .navbar a:hover {
     color: #22c55e;
 }
 
-/* 🔥 HEADER */
+/* HEADER */
 .header {
     text-align: center;
-    padding: 30px 0;
-    font-size: 28px;
-    font-weight: bold;
+    margin-top: 30px;
+    font-size: 32px;
 }
 
-/* 🔥 GRID */
+/* SEARCH */
+.search {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+.search input {
+    width: 300px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+/* GRID */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+    gap: 20px;
     padding: 30px;
 }
 
-/* 🔥 CARD */
+/* CARD */
 .card {
-    background: linear-gradient(145deg, #020617, #0f172a);
-    border: 1px solid #1e293b;
+    background: #020617;
     border-radius: 20px;
     padding: 20px;
+    border: 1px solid #1e293b;
     transition: 0.3s;
-    position: relative;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: scale(1.03);
     border-color: #22c55e;
-}
-
-/* TITLE */
-.card h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-/* META */
-.meta {
-    color: #94a3b8;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-/* BUTTONS */
-.actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
 }
 
 .btn {
     background: #22c55e;
     border: none;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 10px;
     color: white;
     cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn:hover {
-    background: #16a34a;
-}
-
-/* DOWNLOAD */
-.download {
-    color: #38bdf8;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-/* COMMENTS */
-.comments {
-    margin-top: 15px;
 }
 
 .comment {
-    background: #020617;
-    padding: 6px 10px;
-    border-radius: 10px;
     margin-top: 5px;
     font-size: 13px;
-}
-
-/* INPUT */
-input {
-    width: 100%;
-    padding: 6px;
-    border-radius: 8px;
-    border: none;
-    margin-top: 5px;
-}
-
-/* EMPTY */
-.empty {
-    text-align: center;
-    margin-top: 100px;
-    color: #64748b;
+    color: #94a3b8;
 }
