@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактирование</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">✏️</div>
+                <div class="brand-text">
+                    <h1>Редактирование</h1>
+                    <p>{{ note.title }}</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <a class="nav-link" href="/profile">Профиль</a>
+            </div>
+        </div>
+
+        <div class="center-wrap">
+            <div class="auth-card">
+                <h2>Изменить конспект</h2>
+                <p>Обнови данные материала.</p>
+
+                <form class="form" method="post">
+                    <input name="title" value="{{ note.title }}" required>
+                    <input name="subject" value="{{ note.subject }}" required>
+                    <input name="category" value="{{ note.category }}" required>
+                    <input name="description" value="{{ note.description }}" placeholder="Описание">
+                    <button class="btn btn-primary" type="submit">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
