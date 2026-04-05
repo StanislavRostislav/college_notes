@@ -12,6 +12,7 @@ class User(Base):
     role = Column(String, default="student")
 
     notes = relationship("Note", back_populates="owner")
+    favorites = relationship("Favorite", back_populates="user")
 
 
 class Note(Base):
@@ -21,14 +22,19 @@ class Note(Base):
     title = Column(String)
     subject = Column(String)
     category = Column(String)
+    description = Column(String, default="")
     filename = Column(String)
+    original_filename = Column(String, default="")
     likes = Column(Integer, default=0)
-    status = Column(String, default="pending")
+    views = Column(Integer, default=0)
+    status = Column(String, default="approved")
+    created_at = Column(String, default="")
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="notes")
 
-    comments = relationship("Comment", back_populates="note")
+    comments = relationship("Comment", back_populates="note", cascade="all, delete-orphan")
+    favorites = relationship("Favorite", back_populates="note", cascade="all, delete-orphan")
 
 
 class Comment(Base):
@@ -39,3 +45,14 @@ class Comment(Base):
 
     note_id = Column(Integer, ForeignKey("notes.id"))
     note = relationship("Note", back_populates="comments")
+
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    note_id = Column(Integer, ForeignKey("notes.id"))
+
+    user = relationship("User", back_populates="favorites")
+    note = relationship("Note", back_populates="favorites")
