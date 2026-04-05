@@ -7,9 +7,11 @@ from starlette.middleware.sessions import SessionMiddleware
 from database import SessionLocal, engine
 import models
 import crud
+
 import shutil
 import os
 import uuid
+from datetime import datetime
 
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="supersecret")
@@ -38,21 +40,37 @@ def get_user(request: Request):
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request, db=Depends(get_db)):
-    notes = crud.get_notes(db)
+def home(
+    request: Request,
+    search: str = "",
+    subject: str = "all",
+    category: str = "all",
+    sort: str = "new",
+    db=Depends(get_db)
+):
+    notes = crud.get_notes(db, search, subject, category, sort)
+    subjects = crud.get_subjects(db)
+    categories = crud.get_categories(db)
+
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "notes": notes,
-            "user": get_user(request)
+            "user": get_user(request),
+            "search": search,
+            "subject": subject,
+            "category": category,
+            "sort": sort,
+            "subjects": subjects,
+            "categories": categories
         }
     )
 
 
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse("register.html", {"request": request, "error": ""})
 
 
 @app.post("/register")
@@ -75,7 +93,7 @@ def register(
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request, "error": ""})
 
 
 @app.post("/login")
@@ -87,7 +105,11 @@ def login(
 ):
     user = crud.get_user(db, username)
     if user and user.password == password:
-        request.session["user"] = {"id": user.id, "role": user.role, "username": user.username}
+        request.session["user"] = {
+            "id": user.id,
+            "role": user.role,
+            "username": user.username
+        }
         return RedirectResponse("/", status_code=303)
 
     return templates.TemplateResponse(
@@ -108,13 +130,7 @@ def upload_page(request: Request):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
-    return templates.TemplateResponse(
-        "upload.html",
-        {
-            "request": request,
-            "user": user
-        }
-    )
+    return templates.TemplateResponse("upload.html", {"request": request, "user": user})
 
 
 @app.post("/upload")
@@ -123,6 +139,7 @@ def upload(
     title: str = Form(...),
     subject: str = Form(...),
     category: str = Form(...),
+    description: str = Form(""),
     file: UploadFile = File(...),
     db=Depends(get_db)
 ):
@@ -138,8 +155,36 @@ def upload(
     with open(path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    crud.create_note(db, title, subject, category, unique_name, user["id"])
+    crud.create_note(
+        db,
+        title,
+        subject,
+        category,
+        description,
+        unique_name,
+        original_name,
+        datetime.now().strftime("%Y-%m-%d %H:%M"),
+        user["id"]
+    )
     return RedirectResponse("/", status_code=303)
+
+
+@app.get("/note/{note_id}", response_class=HTMLResponse)
+def note_page(note_id: int, request: Request, db=Depends(get_db)):
+    note = crud.get_note_by_id(db, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Конспект не найден")
+
+    crud.add_view(db, note_id)
+
+    return templates.TemplateResponse(
+        "note.html",
+        {
+            "request": request,
+            "note": crud.get_note_by_id(db, note_id),
+            "user": get_user(request)
+        }
+    )
 
 
 @app.get("/download/{note_id}")
@@ -152,7 +197,8 @@ def download(note_id: int, db=Depends(get_db)):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Файл отсутствует")
 
-    return FileResponse(file_path, filename=note.filename)
+    filename = note.original_filename if note.original_filename else note.filename
+    return FileResponse(file_path, filename=filename)
 
 
 @app.post("/like/{note_id}")
@@ -164,6 +210,94 @@ def like(note_id: int, db=Depends(get_db)):
 @app.post("/comment/{note_id}")
 def comment(note_id: int, text: str = Form(...), db=Depends(get_db)):
     crud.add_comment(db, note_id, text)
+    return RedirectResponse(f"/note/{note_id}", status_code=303)
+
+
+@app.get("/profile", response_class=HTMLResponse)
+def profile(request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    notes = crud.get_user_notes(db, user["id"])
+    favorites = crud.get_favorites(db, user["id"])
+
+    return templates.TemplateResponse(
+        "profile.html",
+        {
+            "request": request,
+            "user": user,
+            "notes": notes,
+            "favorites": favorites
+        }
+    )
+
+
+@app.get("/edit/{note_id}", response_class=HTMLResponse)
+def edit_page(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    note = crud.get_note_by_id(db, note_id)
+    if not note or note.owner_id != user["id"]:
+        return RedirectResponse("/profile", status_code=303)
+
+    return templates.TemplateResponse(
+        "edit_note.html",
+        {
+            "request": request,
+            "note": note,
+            "user": user
+        }
+    )
+
+
+@app.post("/edit/{note_id}")
+def edit_note(
+    note_id: int,
+    request: Request,
+    title: str = Form(...),
+    subject: str = Form(...),
+    category: str = Form(...),
+    description: str = Form(""),
+    db=Depends(get_db)
+):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    note = crud.get_note_by_id(db, note_id)
+    if not note or note.owner_id != user["id"]:
+        return RedirectResponse("/profile", status_code=303)
+
+    crud.update_note(db, note_id, title, subject, category, description)
+    return RedirectResponse("/profile", status_code=303)
+
+
+@app.post("/delete/{note_id}")
+def delete_note(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    note = crud.get_note_by_id(db, note_id)
+    if note and note.owner_id == user["id"]:
+        file_path = os.path.join("uploads", note.filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        crud.delete_note(db, note_id)
+
+    return RedirectResponse("/profile", status_code=303)
+
+
+@app.post("/favorite/{note_id}")
+def favorite(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    crud.toggle_favorite(db, user["id"], note_id)
     return RedirectResponse("/", status_code=303)
 
 
@@ -171,7 +305,7 @@ def comment(note_id: int, text: str = Form(...), db=Depends(get_db)):
 def dashboard(request: Request, db=Depends(get_db)):
     user = get_user(request)
     notes = crud.get_all_notes(db)
-    total_notes, total_users = crud.get_stats(db)
+    total_notes, total_users, total_comments, total_favorites = crud.get_stats(db)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -180,6 +314,8 @@ def dashboard(request: Request, db=Depends(get_db)):
             "notes": notes,
             "total_notes": total_notes,
             "total_users": total_users,
+            "total_comments": total_comments,
+            "total_favorites": total_favorites,
             "user": user
         }
     )
