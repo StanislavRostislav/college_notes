@@ -7,12 +7,12 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
+    username = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(String, default="student")
+    role = Column(String, default="student")  # student / teacher
 
-    notes = relationship("Note", back_populates="owner")
-    favorites = relationship("Favorite", back_populates="user")
+    notes = relationship("Note", back_populates="owner", cascade="all, delete-orphan")
+    favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 
 class Note(Base):
@@ -27,7 +27,8 @@ class Note(Base):
     original_filename = Column(String, default="")
     likes = Column(Integer, default=0)
     views = Column(Integer, default=0)
-    status = Column(String, default="approved")
+    downloads = Column(Integer, default=0)
+    status = Column(String, default="pending")  # pending / approved
     created_at = Column(String, default="")
 
     owner_id = Column(Integer, ForeignKey("users.id"))
