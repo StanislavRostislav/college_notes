@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ note.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">📚</div>
+                <div class="brand-text">
+                    <h1>{{ note.title }}</h1>
+                    <p>Страница материала</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link" href="/profile">Профиль</a>
+            </div>
+        </div>
+
+        <div class="note-card">
+            <div class="note-badges">
+                <span class="badge">{{ note.subject }}</span>
+                <span class="badge badge-green">{{ note.category }}</span>
+            </div>
+
+            <div class="note-title">{{ note.title }}</div>
+            <div class="note-meta">
+                Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
+                Дата: {{ note.created_at }}<br>
+                Просмотры: {{ note.views }}<br>
+                Лайки: {{ note.likes }}
+            </div>
+
+            {% set ext = note.filename.split('.')[-1].lower() %}
+            {% if ext == 'pdf' %}
+                <iframe src="/uploads/{{ note.filename }}" class="preview-frame large-preview"></iframe>
+            {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
+                <img src="/uploads/{{ note.filename }}" class="preview-image large-image">
+            {% else %}
+                <div class="empty-state">📄 Предпросмотр недоступен</div>
+            {% endif %}
+
+            {% if note.description %}
+                <div style="margin-top:18px;" class="comment">
+                    <strong>Описание:</strong><br>
+                    {{ note.description }}
+                </div>
+            {% endif %}
+
+            <div class="actions" style="margin-top:18px;">
+                <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
+            </div>
+
+            <div style="margin-top:20px;">
+                <h3 style="margin-bottom:12px;">Комментарии</h3>
+
+                <form class="comment-box" method="post" action="/comment/{{ note.id }}">
+                    <input name="text" placeholder="Написать комментарий...">
+                    <button class="btn btn-primary" type="submit">Отправить</button>
+                </form>
+
+                <div class="comments">
+                    {% for c in note.comments %}
+                        <div class="comment">💬 {{ c.text }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
