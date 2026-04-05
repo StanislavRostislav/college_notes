@@ -19,20 +19,20 @@
 
             <div class="nav-links">
                 <a class="nav-link" href="/">Главная</a>
-                <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
-                <a class="nav-link" href="/login">Вход</a>
+                <a class="nav-link" href="/profile">Профиль</a>
             </div>
         </div>
 
         <div class="center-wrap">
             <div class="auth-card">
                 <h2>🚀 Загрузка конспекта</h2>
-                <p>Заполни информацию о материале и прикрепи файл.</p>
+                <p>Добавь материал с описанием и файлом.</p>
 
                 <form class="form" method="post" enctype="multipart/form-data">
                     <input name="title" placeholder="Название" required>
                     <input name="subject" placeholder="Предмет" required>
                     <input name="category" placeholder="Тип: лекция / практика / методичка" required>
+                    <input name="description" placeholder="Краткое описание">
 
                     <div class="file-drop">
                         <div>📂 Выбери файл для загрузки</div>
