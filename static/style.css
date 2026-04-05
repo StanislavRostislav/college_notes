@@ -1,7 +1,9 @@
 body {
     margin: 0;
-    font-family: 'Segoe UI';
-    background: linear-gradient(135deg, #020617, #0f172a);
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at 20% 20%, #0ea5e9, transparent 40%),
+                radial-gradient(circle at 80% 0%, #22c55e, transparent 40%),
+                #020617;
     color: white;
 }
 
@@ -9,9 +11,9 @@ body {
 .navbar {
     display: flex;
     justify-content: space-between;
-    padding: 15px 40px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px);
+    padding: 20px 40px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(15px);
 }
 
 .navbar a {
@@ -21,63 +23,103 @@ body {
 }
 
 .navbar a:hover {
-    color: #22c55e;
+    color: white;
 }
 
-/* HEADER */
-.header {
-    text-align: center;
-    margin-top: 30px;
-    font-size: 32px;
-}
-
-/* SEARCH */
-.search {
+/* CENTER LAYOUT */
+.center {
     display: flex;
     justify-content: center;
-    margin: 20px;
+    align-items: center;
+    height: 85vh;
 }
 
-.search input {
-    width: 300px;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-}
-
-/* GRID */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
-    gap: 20px;
-    padding: 30px;
-}
-
-/* CARD */
+/* GLASS CARD */
 .card {
-    background: #020617;
-    border-radius: 20px;
-    padding: 20px;
+    width: 420px;
+    padding: 30px;
+    border-radius: 25px;
+
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255,255,255,0.1);
+
+    box-shadow:
+        0 0 40px rgba(14,165,233,0.2),
+        0 0 80px rgba(34,197,94,0.1);
+
+    animation: fadeIn 0.5s ease;
+}
+
+/* TITLE */
+.card h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* INPUT */
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+
+    border-radius: 12px;
     border: 1px solid #1e293b;
+
+    background: #020617;
+    color: white;
+}
+
+/* FILE ZONE */
+.file-box {
+    margin-top: 15px;
+    padding: 20px;
+
+    border: 2px dashed #1e293b;
+    border-radius: 15px;
+
+    text-align: center;
+    cursor: pointer;
+
     transition: 0.3s;
 }
 
-.card:hover {
-    transform: scale(1.03);
+.file-box:hover {
     border-color: #22c55e;
+    background: rgba(34,197,94,0.1);
 }
 
+/* BUTTON */
 .btn {
-    background: #22c55e;
+    width: 100%;
+    margin-top: 20px;
+
+    padding: 12px;
+    border-radius: 12px;
+
+    background: linear-gradient(90deg, #22c55e, #0ea5e9);
     border: none;
-    padding: 6px 10px;
-    border-radius: 10px;
+
     color: white;
+    font-weight: bold;
+
     cursor: pointer;
+    transition: 0.3s;
 }
 
-.comment {
-    margin-top: 5px;
-    font-size: 13px;
-    color: #94a3b8;
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
