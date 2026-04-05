@@ -2,6 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js"></script>
 </head>
 <body>
 
@@ -14,50 +15,41 @@
     </div>
 </div>
 
-<div class="header">
-    🚀 College Notes
+<div class="header">🚀 College Notes</div>
+
+<div class="search">
+    <input id="search" onkeyup="searchNotes()" placeholder="Поиск...">
 </div>
 
-{% if notes %}
 <div class="grid">
-
 {% for note in notes %}
 <div class="card">
 
     <h2>{{note.title}}</h2>
 
-    <div class="meta">
-        {{note.subject}} • {{note.category}}<br>
-        👤 {{note.owner.username}}
-    </div>
+    <p>{{note.subject}} • {{note.category}}</p>
+    <p>👤 {{note.owner.username}}</p>
 
-    <a class="download" href="/download/{{note.id}}">⬇ Скачать</a>
+    <a href="/download/{{note.id}}">⬇ Скачать</a>
 
-    <div class="actions">
-        <form action="/like/{{note.id}}" method="post">
-            <button class="btn">❤️ {{note.likes}}</button>
-        </form>
-    </div>
+    <br><br>
 
-    <form action="/comment/{{note.id}}" method="post">
-        <input name="text" placeholder="Написать комментарий...">
-    </form>
+    <button class="btn" onclick="like({{note.id}})">
+        ❤️ {{note.likes}}
+    </button>
 
-    <div class="comments">
-        {% for c in note.comments %}
-            <div class="comment">💬 {{c.text}}</div>
-        {% endfor %}
-    </div>
+    <br><br>
+
+    <input id="comment-{{note.id}}" placeholder="Комментарий">
+    <button class="btn" onclick="comment({{note.id}})">Отправить</button>
+
+    {% for c in note.comments %}
+        <div class="comment">💬 {{c.text}}</div>
+    {% endfor %}
 
 </div>
 {% endfor %}
-
 </div>
-{% else %}
-<div class="empty">
-    😴 Пока нет конспектов
-</div>
-{% endif %}
 
 </body>
 </html>
