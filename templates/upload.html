@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Загрузка конспекта</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <div class="page">
@@ -12,12 +13,13 @@
             <div class="brand">
                 <div class="brand-logo">📚</div>
                 <div class="brand-text">
-                    <h1>College Notes</h1>
-                    <p>Добавление нового материала</p>
+                    <h1>Загрузка материала</h1>
+                    <p>{{ "Преподаватель публикует сразу" if user.role == "teacher" else "Студенческие материалы уходят на модерацию" }}</p>
                 </div>
             </div>
 
             <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/profile">Профиль</a>
             </div>
@@ -26,7 +28,7 @@
         <div class="center-wrap">
             <div class="auth-card">
                 <h2>🚀 Загрузка конспекта</h2>
-                <p>Добавь материал с описанием и файлом.</p>
+                <p>Добавь полезный материал и попади в топ авторов.</p>
 
                 <form class="form" method="post" enctype="multipart/form-data">
                     <input name="title" placeholder="Название" required>
