@@ -1,117 +1,30 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>College Notes</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="page">
-        <header class="topbar">
-            <div class="brand">
-                <div class="brand-icon">📚</div>
-                <div>
-                    <h1>College Notes</h1>
-                    <p>Конспекты студентов в одном месте</p>
-                </div>
-            </div>
+{% extends "base.html" %}
+{% block content %}
 
-            <nav class="nav">
-                <a class="nav-link" href="/">Главная</a>
-                {% if user %}
-                    <a class="nav-link nav-link-accent" href="/upload">Загрузить</a>
-                    <span class="nav-user">@{{ user.username }}</span>
-                    <a class="nav-link" href="/logout">Выйти</a>
-                {% else %}
-                    <a class="nav-link" href="/login">Войти</a>
-                    <a class="nav-link nav-link-accent" href="/register">Регистрация</a>
-                {% endif %}
-            </nav>
-        </header>
+<h1>📚 Конспекты</h1>
 
-        <section class="hero">
-            <div class="hero-left">
-                <h2>Находи, загружай и обсуждай конспекты</h2>
-                <p>Удобный каталог лекций, практик и полезных материалов для студентов.</p>
-            </div>
-        </section>
+<div class="grid">
+{% for note in notes %}
+<div class="card">
+    <h2>{{note.title}}</h2>
+    <p>{{note.subject}}</p>
+    <p>Автор: {{note.owner.username}}</p>
 
-        <section class="filters">
-            <form method="get" class="filters-form">
-                <input
-                    class="input"
-                    type="text"
-                    name="search"
-                    placeholder="Поиск по названию..."
-                    value="{{ search }}"
-                >
+    <a href="/uploads/{{note.filename}}">📥 Скачать</a>
 
-                <select class="input" name="subject">
-                    <option value="Все" {% if subject == "Все" %}selected{% endif %}>Все предметы</option>
-                    {% for s in subjects %}
-                        <option value="{{ s }}" {% if subject == s %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
+    <form action="/like/{{note.id}}" method="post">
+        <button>❤️ {{note.likes}}</button>
+    </form>
 
-                <button class="btn btn-primary" type="submit">Найти</button>
-            </form>
-        </section>
+    <form action="/comment/{{note.id}}" method="post">
+        <input name="text" placeholder="Комментарий">
+    </form>
 
-        <section class="notes-grid">
-            {% if notes %}
-                {% for note in notes %}
-                    <article class="note-card">
-                        <div class="note-meta">
-                            <span class="badge">{{ note.subject }}</span>
-                            <span class="badge badge-soft">{{ note.category }}</span>
-                        </div>
+    {% for c in note.comments %}
+        <p>💬 {{c.text}}</p>
+    {% endfor %}
+</div>
+{% endfor %}
+</div>
 
-                        <h3 class="note-title">{{ note.title }}</h3>
-                        <p class="note-author">Автор: @{{ note.owner.username }}</p>
-
-                        <div class="note-actions">
-                            <a class="btn btn-outline" href="/download/{{ note.id }}">Скачать</a>
-
-                            <form action="/like/{{ note.id }}" method="post">
-                                <button class="btn btn-like" type="submit">❤️ {{ note.likes }}</button>
-                            </form>
-                        </div>
-
-                        <div class="comments-block">
-                            <h4>Комментарии</h4>
-
-                            {% if user %}
-                                <form action="/comment/{{ note.id }}" method="post" class="comment-form">
-                                    <input class="input" name="text" placeholder="Напиши комментарий...">
-                                    <button class="btn btn-primary" type="submit">Отправить</button>
-                                </form>
-                            {% else %}
-                                <p class="hint">Чтобы комментировать, войди в аккаунт.</p>
-                            {% endif %}
-
-                            <div class="comments-list">
-                                {% if note.comments %}
-                                    {% for c in note.comments %}
-                                        <div class="comment-item">
-                                            <strong>@{{ c.user.username }}</strong>
-                                            <span>{{ c.text }}</span>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="hint">Пока нет комментариев.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </article>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <h3>Пока нет конспектов</h3>
-                    <p>Загрузи первый материал и начни наполнять каталог.</p>
-                </div>
-            {% endif %}
-        </section>
-    </div>
-</body>
-</html>
+{% endblock %}
