@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Профиль</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <div class="page">
@@ -13,11 +14,12 @@
                 <div class="brand-logo">👤</div>
                 <div class="brand-text">
                     <h1>Профиль</h1>
-                    <p>{{ user.username }}</p>
+                    <p>{{ user.username }} • {{ "Преподаватель" if user.role == "teacher" else "Студент" }}</p>
                 </div>
             </div>
 
             <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
             </div>
@@ -36,18 +38,24 @@
 
         <div class="hero" style="margin-bottom:18px;">
             <h2 style="font-size:28px;">Мои конспекты</h2>
-            <p>Здесь можно редактировать, удалять и отслеживать свои материалы.</p>
+            <p>Загружай больше, собирай лайки и поднимайся в рейтинге пользователей.</p>
         </div>
 
         {% if notes %}
             <div class="grid">
                 {% for note in notes %}
                     <div class="note-card">
+                        <div class="note-badges">
+                            <span class="badge">{{ note.subject }}</span>
+                            <span class="badge badge-green">{{ note.category }}</span>
+                            {% if note.status == "pending" %}
+                                <span class="badge badge-pending">На модерации</span>
+                            {% endif %}
+                        </div>
+
                         <div class="note-title">{{ note.title }}</div>
                         <div class="note-meta">
-                            {{ note.subject }} • {{ note.category }}<br>
-                            Статус: {{ note.status }}<br>
-                            Лайки: {{ note.likes }} • Просмотры: {{ note.views }}
+                            Лайки: {{ note.likes }} • Просмотры: {{ note.views }} • Скачивания: {{ note.downloads }}
                         </div>
 
                         <div class="actions">
