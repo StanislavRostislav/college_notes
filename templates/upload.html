@@ -14,48 +14,24 @@
     </div>
 </div>
 
-<div style="display:flex; justify-content:center; align-items:center; height:80vh;">
+<div class="center">
 
-    <div style="
-        width:400px;
-        padding:30px;
-        border-radius:20px;
-        background: linear-gradient(145deg, #020617, #0f172a);
-        border:1px solid #1e293b;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    ">
+    <div class="card">
 
-        <h2 style="text-align:center; margin-bottom:20px;">
-            📤 Загрузка конспекта
-        </h2>
+        <h2>🚀 Загрузка конспекта</h2>
 
         <form method="post" enctype="multipart/form-data">
 
             <input name="title" placeholder="Название" required>
-
             <input name="subject" placeholder="Предмет" required>
-
             <input name="category" placeholder="Тип (лекция / практика)" required>
 
-            <div style="
-                border:2px dashed #1e293b;
-                border-radius:15px;
-                padding:20px;
-                margin-top:15px;
-                text-align:center;
-                cursor:pointer;
-                transition:0.3s;
-            " 
-            onmouseover="this.style.borderColor='#22c55e'" 
-            onmouseout="this.style.borderColor='#1e293b'">
+            <label class="file-box">
+                📂 Перетащи или выбери файл
+                <input type="file" name="file" required style="display:none;">
+            </label>
 
-                📁 Выбери файл
-                <input type="file" name="file" required style="color:white;">
-            </div>
-
-            <button class="btn" style="width:100%; margin-top:20px;">
-                🚀 Загрузить
-            </button>
+            <button class="btn">Загрузить</button>
 
         </form>
 
