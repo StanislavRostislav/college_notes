@@ -1,19 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">📚</div>
+                <div class="brand-text">
+                    <h1>College Notes</h1>
+                    <p>Вход в систему</p>
+                </div>
+            </div>
 
-<div class="header">🔐 Вход</div>
+            <div class="nav-links">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link" href="/register">Регистрация</a>
+            </div>
+        </div>
 
-<div style="max-width:400px;margin:auto;">
-    <form method="post">
-        <input name="username" placeholder="Логин">
-        <input name="password" type="password" placeholder="Пароль">
-        <button class="btn" style="margin-top:10px;width:100%;">Войти</button>
-    </form>
-</div>
+        <div class="center-wrap">
+            <div class="auth-card">
+                <h2>🔐 Вход</h2>
+                <p>Войди, чтобы загружать материалы и пользоваться системой.</p>
 
+                {% if error %}
+                    <div class="error">{{ error }}</div>
+                {% endif %}
+
+                <form class="form" method="post">
+                    <input name="username" placeholder="Логин" required>
+                    <input name="password" type="password" placeholder="Пароль" required>
+                    <button class="btn btn-primary" type="submit">Войти</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
