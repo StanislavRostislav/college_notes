@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy import or_, func, desc
 import models
 
 
-def create_user(db, username, password):
-    user = models.User(username=username, password=password)
+def create_user(db, username, password, role="student"):
+    user = models.User(username=username, password=password, role=role)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -19,7 +19,7 @@ def get_user_by_id(db, user_id):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def create_note(db, title, subject, category, description, filename, original_filename, created_at, user_id):
+def create_note(db, title, subject, category, description, filename, original_filename, created_at, user_id, status="pending"):
     note = models.Note(
         title=title,
         subject=subject,
@@ -29,7 +29,7 @@ def create_note(db, title, subject, category, description, filename, original_fi
         original_filename=original_filename,
         created_at=created_at,
         owner_id=user_id,
-        status="approved"
+        status=status
     )
     db.add(note)
     db.commit()
@@ -37,12 +37,16 @@ def create_note(db, title, subject, category, description, filename, original_fi
     return note
 
 
-def get_notes(db, search="", subject="", category="", sort="new"):
+def get_notes(db, search="", subject="", category="", sort="new", viewer=None):
     query = db.query(models.Note).options(
         joinedload(models.Note.comments),
         joinedload(models.Note.owner),
         joinedload(models.Note.favorites)
     )
+
+    # Студенты видят только approved, преподаватели видят все
+    if not viewer or viewer.get("role") != "teacher":
+        query = query.filter(models.Note.status == "approved")
 
     if search:
         query = query.filter(
@@ -61,9 +65,11 @@ def get_notes(db, search="", subject="", category="", sort="new"):
         query = query.filter(models.Note.category == category)
 
     if sort == "popular":
-        query = query.order_by(models.Note.likes.desc())
+        query = query.order_by(models.Note.likes.desc(), models.Note.id.desc())
     elif sort == "views":
-        query = query.order_by(models.Note.views.desc())
+        query = query.order_by(models.Note.views.desc(), models.Note.id.desc())
+    elif sort == "downloads":
+        query = query.order_by(models.Note.downloads.desc(), models.Note.id.desc())
     else:
         query = query.order_by(models.Note.id.desc())
 
@@ -72,7 +78,9 @@ def get_notes(db, search="", subject="", category="", sort="new"):
 
 def get_all_notes(db):
     return db.query(models.Note).options(
-        joinedload(models.Note.owner)
+        joinedload(models.Note.owner),
+        joinedload(models.Note.comments),
+        joinedload(models.Note.favorites)
     ).order_by(models.Note.id.desc()).all()
 
 
@@ -140,6 +148,13 @@ def add_view(db, note_id):
         db.commit()
 
 
+def add_download(db, note_id):
+    note = db.query(models.Note).get(note_id)
+    if note:
+        note.downloads += 1
+        db.commit()
+
+
 def toggle_favorite(db, user_id, note_id):
     fav = db.query(models.Favorite).filter(
         models.Favorite.user_id == user_id,
@@ -181,3 +196,21 @@ def get_subjects(db):
 def get_categories(db):
     rows = db.query(models.Note.category).distinct().all()
     return sorted([r[0] for r in rows if r[0]])
+
+
+def get_top_users(db):
+    return (
+        db.query(
+            models.User.id,
+            models.User.username,
+            models.User.role,
+            func.count(models.Note.id).label("notes_count"),
+            func.coalesce(func.sum(models.Note.likes), 0).label("likes_sum"),
+            func.coalesce(func.sum(models.Note.views), 0).label("views_sum"),
+            func.coalesce(func.sum(models.Note.downloads), 0).label("downloads_sum")
+        )
+        .outerjoin(models.Note, models.Note.owner_id == models.User.id)
+        .group_by(models.User.id)
+        .order_by(desc("likes_sum"), desc("downloads_sum"), desc("notes_count"))
+        .all()
+    )
