@@ -1,12 +1,19 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
 
-<h2>Регистрация</h2>
+<div class="header">📝 Регистрация</div>
 
-<form method="post">
-    <input name="username">
-    <input name="password">
-    <button>Создать</button>
-</form>
+<div style="max-width:400px;margin:auto;">
+    <form method="post">
+        <input name="username" placeholder="Логин">
+        <input name="password" type="password" placeholder="Пароль">
+        <button class="btn" style="margin-top:10px;width:100%;">Создать аккаунт</button>
+    </form>
+</div>
 
-{% endblock %}
+</body>
+</html>
