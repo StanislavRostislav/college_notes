@@ -22,6 +22,7 @@
                 <a class="nav-link" href="/">Главная</a>
                 {% if user %}
                     <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
+                    <a class="nav-link" href="/profile">Профиль</a>
                     <a class="nav-link" href="/dashboard">Админ</a>
                     <a class="nav-link" href="/logout">Выйти ({{ user.username }})</a>
                 {% else %}
@@ -32,47 +33,86 @@
         </div>
 
         <div class="hero">
-            <h2>Находи, загружай и храни конспекты в одном месте</h2>
-            <p>Система для студентов и преподавателей: материалы, обсуждения, модерация и быстрый доступ к учебным файлам.</p>
+            <h2>Находи, загружай, сохраняй и обсуждай конспекты</h2>
+            <p>Полноценная учебная платформа для материалов колледжа: конспекты, методички, практики, обсуждения и быстрый доступ к файлам.</p>
         </div>
 
-        <div class="toolbar">
+        <form method="get" class="toolbar">
             <div class="search-box">
-                <input id="search" onkeyup="searchNotes()" placeholder="Поиск по названию, предмету, автору...">
+                <input name="search" value="{{ search }}" placeholder="Поиск по названию, предмету, описанию...">
             </div>
-        </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Предмет</h3>
+                    <select class="form-select" name="subject">
+                        <option value="all">Все</option>
+                        {% for s in subjects %}
+                            <option value="{{ s }}" {% if subject == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Тип</h3>
+                    <select class="form-select" name="category">
+                        <option value="all">Все</option>
+                        {% for c in categories %}
+                            <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Сортировка</h3>
+                    <select class="form-select" name="sort">
+                        <option value="new" {% if sort == "new" %}selected{% endif %}>Новые</option>
+                        <option value="popular" {% if sort == "popular" %}selected{% endif %}>По лайкам</option>
+                        <option value="views" {% if sort == "views" %}selected{% endif %}>По просмотрам</option>
+                    </select>
+                </div>
+
+                <div class="stat-card" style="display:flex;align-items:end;">
+                    <button class="btn btn-primary" type="submit" style="width:100%;">Применить</button>
+                </div>
+            </div>
+        </form>
 
         {% if notes %}
             <div class="grid">
                 {% for note in notes %}
+                    {% set ext = note.filename.split('.')[-1].lower() %}
                     <div class="note-card card">
                         <div class="note-badges">
                             <span class="badge">{{ note.subject }}</span>
                             <span class="badge badge-green">{{ note.category }}</span>
-                            {% if note.status == "pending" %}
-                                <span class="badge badge-pending">На модерации</span>
-                            {% endif %}
                         </div>
 
                         <div class="note-title">{{ note.title }}</div>
                         <div class="note-meta">
-                            Автор: {{ note.owner.username if note.owner else "Неизвестно" }}
+                            Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
+                            Просмотры: {{ note.views }} • Лайки: {{ note.likes }} • В избранном: {{ note.favorites|length }}<br>
+                            Загружено: {{ note.created_at }}
                         </div>
 
-                        <div class="actions">
+                        {% if ext == 'pdf' %}
+                            <iframe src="/uploads/{{ note.filename }}" class="preview-frame"></iframe>
+                        {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
+                            <img src="/uploads/{{ note.filename }}" class="preview-image">
+                        {% else %}
+                            <div class="empty-state" style="padding:18px;">📄 Предпросмотр недоступен</div>
+                        {% endif %}
+
+                        <div class="actions" style="margin-top:16px;">
+                            <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
                             <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
                             <button class="btn btn-like" onclick="like({{ note.id }})">❤️ {{ note.likes }}</button>
-                        </div>
 
-                        <div class="comment-box">
-                            <input id="comment-{{ note.id }}" placeholder="Написать комментарий...">
-                            <button class="btn btn-primary" onclick="comment({{ note.id }})">Отправить</button>
-                        </div>
-
-                        <div class="comments">
-                            {% for c in note.comments %}
-                                <div class="comment">💬 {{ c.text }}</div>
-                            {% endfor %}
+                            {% if user %}
+                                <form action="/favorite/{{ note.id }}" method="post" style="display:inline;">
+                                    <button class="btn btn-primary" type="submit">⭐ Избранное</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
