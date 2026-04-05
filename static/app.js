@@ -1,17 +1,14 @@
-async function like(id) {
-    await fetch(`/like/${id}`, { method: "POST" });
-    location.reload();
+function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
 }
 
-function searchNotes() {
-    const input = document.getElementById("search");
-    if (!input) return;
-
-    const value = input.value.toLowerCase();
-    const cards = document.querySelectorAll(".card");
-
-    cards.forEach(card => {
-        const text = card.innerText.toLowerCase();
-        card.style.display = text.includes(value) ? "" : "none";
-    });
+function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    setTheme(current === "dark" ? "light" : "dark");
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("theme") || "dark";
+    setTheme(saved);
+});
