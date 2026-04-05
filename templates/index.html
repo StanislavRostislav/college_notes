@@ -1,55 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <title>College Notes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/app.js"></script>
 </head>
 <body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">📚</div>
+                <div class="brand-text">
+                    <h1>College Notes</h1>
+                    <p>Платформа обмена учебными материалами</p>
+                </div>
+            </div>
 
-<div class="navbar">
-    <div>📚 Конспекты</div>
-    <div>
-        <a href="/">Главная</a>
-        <a href="/upload">Загрузить</a>
-        <a href="/login">Вход</a>
+            <div class="nav-links">
+                <a class="nav-link" href="/">Главная</a>
+                {% if user %}
+                    <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
+                    <a class="nav-link" href="/dashboard">Админ</a>
+                    <a class="nav-link" href="/logout">Выйти ({{ user.username }})</a>
+                {% else %}
+                    <a class="nav-link" href="/login">Вход</a>
+                    <a class="nav-link nav-link-primary" href="/register">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="hero">
+            <h2>Находи, загружай и храни конспекты в одном месте</h2>
+            <p>Система для студентов и преподавателей: материалы, обсуждения, модерация и быстрый доступ к учебным файлам.</p>
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <input id="search" onkeyup="searchNotes()" placeholder="Поиск по названию, предмету, автору...">
+            </div>
+        </div>
+
+        {% if notes %}
+            <div class="grid">
+                {% for note in notes %}
+                    <div class="note-card card">
+                        <div class="note-badges">
+                            <span class="badge">{{ note.subject }}</span>
+                            <span class="badge badge-green">{{ note.category }}</span>
+                            {% if note.status == "pending" %}
+                                <span class="badge badge-pending">На модерации</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="note-title">{{ note.title }}</div>
+                        <div class="note-meta">
+                            Автор: {{ note.owner.username if note.owner else "Неизвестно" }}
+                        </div>
+
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
+                            <button class="btn btn-like" onclick="like({{ note.id }})">❤️ {{ note.likes }}</button>
+                        </div>
+
+                        <div class="comment-box">
+                            <input id="comment-{{ note.id }}" placeholder="Написать комментарий...">
+                            <button class="btn btn-primary" onclick="comment({{ note.id }})">Отправить</button>
+                        </div>
+
+                        <div class="comments">
+                            {% for c in note.comments %}
+                                <div class="comment">💬 {{ c.text }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Пока нет конспектов</h3>
+                <p>Загрузи первый материал и он сразу появится здесь.</p>
+            </div>
+        {% endif %}
     </div>
-</div>
-
-<div class="header">🚀 College Notes</div>
-
-<div class="search">
-    <input id="search" onkeyup="searchNotes()" placeholder="Поиск...">
-</div>
-
-<div class="grid">
-{% for note in notes %}
-<div class="card">
-
-    <h2>{{note.title}}</h2>
-
-    <p>{{note.subject}} • {{note.category}}</p>
-    <p>👤 {{note.owner.username}}</p>
-
-    <a href="/download/{{note.id}}">⬇ Скачать</a>
-
-    <br><br>
-
-    <button class="btn" onclick="like({{note.id}})">
-        ❤️ {{note.likes}}
-    </button>
-
-    <br><br>
-
-    <input id="comment-{{note.id}}" placeholder="Комментарий">
-    <button class="btn" onclick="comment({{note.id}})">Отправить</button>
-
-    {% for c in note.comments %}
-        <div class="comment">💬 {{c.text}}</div>
-    {% endfor %}
-
-</div>
-{% endfor %}
-</div>
-
 </body>
 </html>
