@@ -13,13 +13,13 @@
                 <div class="brand-logo">🛠️</div>
                 <div class="brand-text">
                     <h1>Админ-панель</h1>
-                    <p>Управление материалами и статистикой</p>
+                    <p>Управление системой</p>
                 </div>
             </div>
 
             <div class="nav-links">
                 <a class="nav-link" href="/">Главная</a>
-                <a class="nav-link" href="/upload">Загрузить</a>
+                <a class="nav-link" href="/profile">Профиль</a>
             </div>
         </div>
 
@@ -31,6 +31,14 @@
             <div class="stat-card">
                 <h3>Всего материалов</h3>
                 <strong>{{ total_notes }}</strong>
+            </div>
+            <div class="stat-card">
+                <h3>Всего комментариев</h3>
+                <strong>{{ total_comments }}</strong>
+            </div>
+            <div class="stat-card">
+                <h3>Избранное</h3>
+                <strong>{{ total_favorites }}</strong>
             </div>
         </div>
 
