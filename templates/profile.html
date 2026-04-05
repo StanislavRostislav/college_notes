@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">👤</div>
+                <div class="brand-text">
+                    <h1>Профиль</h1>
+                    <p>{{ user.username }}</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Мои материалы</h3>
+                <strong>{{ notes|length }}</strong>
+            </div>
+            <div class="stat-card">
+                <h3>Избранное</h3>
+                <strong>{{ favorites|length }}</strong>
+            </div>
+        </div>
+
+        <div class="hero" style="margin-bottom:18px;">
+            <h2 style="font-size:28px;">Мои конспекты</h2>
+            <p>Здесь можно редактировать, удалять и отслеживать свои материалы.</p>
+        </div>
+
+        {% if notes %}
+            <div class="grid">
+                {% for note in notes %}
+                    <div class="note-card">
+                        <div class="note-title">{{ note.title }}</div>
+                        <div class="note-meta">
+                            {{ note.subject }} • {{ note.category }}<br>
+                            Статус: {{ note.status }}<br>
+                            Лайки: {{ note.likes }} • Просмотры: {{ note.views }}
+                        </div>
+
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
+                            <a class="btn btn-primary" href="/edit/{{ note.id }}">Редактировать</a>
+                            <form action="/delete/{{ note.id }}" method="post">
+                                <button class="btn btn-like" type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">У тебя пока нет загруженных конспектов.</div>
+        {% endif %}
+
+        <div class="hero" style="margin:28px 0 18px;">
+            <h2 style="font-size:28px;">Избранное</h2>
+            <p>Сохранённые материалы.</p>
+        </div>
+
+        {% if favorites %}
+            <div class="grid">
+                {% for fav in favorites %}
+                    <div class="note-card">
+                        <div class="note-title">{{ fav.note.title }}</div>
+                        <div class="note-meta">
+                            {{ fav.note.subject }} • {{ fav.note.category }}<br>
+                            Автор: {{ fav.note.owner.username if fav.note.owner else "Неизвестно" }}
+                        </div>
+
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="/note/{{ fav.note.id }}">Открыть</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">Пока нет избранных материалов.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
