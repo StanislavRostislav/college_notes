@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Админ панель</h1>
+
+<p>Всего пользователей: {{total_users}}</p>
+<p>Всего файлов: {{total_notes}}</p>
+
+{% for note in notes %}
+<div class="card">
+    {{note.title}} - {{note.status}}
+
+    {% if note.status == "pending" %}
+    <form action="/approve/{{note.id}}" method="post">
+        <button>Одобрить</button>
+    </form>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}
