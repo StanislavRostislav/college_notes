@@ -1,21 +1,57 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ-панель</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">🛠️</div>
+                <div class="brand-text">
+                    <h1>Админ-панель</h1>
+                    <p>Управление материалами и статистикой</p>
+                </div>
+            </div>
 
-<h1>Админ панель</h1>
+            <div class="nav-links">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link" href="/upload">Загрузить</a>
+            </div>
+        </div>
 
-<p>Всего пользователей: {{total_users}}</p>
-<p>Всего файлов: {{total_notes}}</p>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Всего пользователей</h3>
+                <strong>{{ total_users }}</strong>
+            </div>
+            <div class="stat-card">
+                <h3>Всего материалов</h3>
+                <strong>{{ total_notes }}</strong>
+            </div>
+        </div>
 
-{% for note in notes %}
-<div class="card">
-    {{note.title}} - {{note.status}}
+        <div class="grid">
+            {% for note in notes %}
+                <div class="note-card">
+                    <div class="note-title">{{ note.title }}</div>
+                    <div class="note-meta">
+                        {{ note.subject }} • {{ note.category }}<br>
+                        Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
+                        Статус: {{ note.status }}
+                    </div>
 
-    {% if note.status == "pending" %}
-    <form action="/approve/{{note.id}}" method="post">
-        <button>Одобрить</button>
-    </form>
-    {% endif %}
-</div>
-{% endfor %}
-
-{% endblock %}
+                    {% if note.status == "pending" %}
+                        <form action="/approve/{{ note.id }}" method="post">
+                            <button class="btn btn-primary">Одобрить</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
