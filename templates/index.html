@@ -1,30 +1,63 @@
-{% extends "base.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
 
-<h1>📚 Конспекты</h1>
+<div class="navbar">
+    <div>📚 Конспекты</div>
+    <div>
+        <a href="/">Главная</a>
+        <a href="/upload">Загрузить</a>
+        <a href="/login">Вход</a>
+    </div>
+</div>
 
+<div class="header">
+    🚀 College Notes
+</div>
+
+{% if notes %}
 <div class="grid">
+
 {% for note in notes %}
 <div class="card">
+
     <h2>{{note.title}}</h2>
-    <p>{{note.subject}}</p>
-    <p>Автор: {{note.owner.username}}</p>
 
-    <a href="/uploads/{{note.filename}}">📥 Скачать</a>
+    <div class="meta">
+        {{note.subject}} • {{note.category}}<br>
+        👤 {{note.owner.username}}
+    </div>
 
-    <form action="/like/{{note.id}}" method="post">
-        <button>❤️ {{note.likes}}</button>
-    </form>
+    <a class="download" href="/download/{{note.id}}">⬇ Скачать</a>
+
+    <div class="actions">
+        <form action="/like/{{note.id}}" method="post">
+            <button class="btn">❤️ {{note.likes}}</button>
+        </form>
+    </div>
 
     <form action="/comment/{{note.id}}" method="post">
-        <input name="text" placeholder="Комментарий">
+        <input name="text" placeholder="Написать комментарий...">
     </form>
 
-    {% for c in note.comments %}
-        <p>💬 {{c.text}}</p>
-    {% endfor %}
+    <div class="comments">
+        {% for c in note.comments %}
+            <div class="comment">💬 {{c.text}}</div>
+        {% endfor %}
+    </div>
+
 </div>
 {% endfor %}
-</div>
 
-{% endblock %}
+</div>
+{% else %}
+<div class="empty">
+    😴 Пока нет конспектов
+</div>
+{% endif %}
+
+</body>
+</html>
