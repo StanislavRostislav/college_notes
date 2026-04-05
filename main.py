@@ -48,22 +48,40 @@ def home(
     sort: str = "new",
     db=Depends(get_db)
 ):
-    notes = crud.get_notes(db, search, subject, category, sort)
+    user = get_user(request)
+    notes = crud.get_notes(db, search, subject, category, sort, user)
     subjects = crud.get_subjects(db)
     categories = crud.get_categories(db)
+    top_users = crud.get_top_users(db)[:5]
 
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "notes": notes,
-            "user": get_user(request),
+            "user": user,
             "search": search,
             "subject": subject,
             "category": category,
             "sort": sort,
             "subjects": subjects,
-            "categories": categories
+            "categories": categories,
+            "top_users": top_users
+        }
+    )
+
+
+@app.get("/users", response_class=HTMLResponse)
+def users_page(request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    users = crud.get_top_users(db)
+
+    return templates.TemplateResponse(
+        "users.html",
+        {
+            "request": request,
+            "user": user,
+            "users": users
         }
     )
 
@@ -78,6 +96,7 @@ def register(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    role: str = Form("student"),
     db=Depends(get_db)
 ):
     existing = crud.get_user(db, username)
@@ -87,7 +106,10 @@ def register(
             {"request": request, "error": "Такой логин уже существует"}
         )
 
-    crud.create_user(db, username, password)
+    if role not in ["student", "teacher"]:
+        role = "student"
+
+    crud.create_user(db, username, password, role)
     return RedirectResponse("/login", status_code=303)
 
 
@@ -155,6 +177,8 @@ def upload(
     with open(path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    status = "approved" if user["role"] == "teacher" else "pending"
+
     crud.create_note(
         db,
         title,
@@ -164,7 +188,8 @@ def upload(
         unique_name,
         original_name,
         datetime.now().strftime("%Y-%m-%d %H:%M"),
-        user["id"]
+        user["id"],
+        status
     )
     return RedirectResponse("/", status_code=303)
 
@@ -175,6 +200,10 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
     if not note:
         raise HTTPException(status_code=404, detail="Конспект не найден")
 
+    user = get_user(request)
+    if note.status != "approved" and (not user or user.get("role") != "teacher"):
+        raise HTTPException(status_code=403, detail="Нет доступа")
+
     crud.add_view(db, note_id)
 
     return templates.TemplateResponse(
@@ -182,7 +211,7 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
         {
             "request": request,
             "note": crud.get_note_by_id(db, note_id),
-            "user": get_user(request)
+            "user": user
         }
     )
 
@@ -196,6 +225,8 @@ def download(note_id: int, db=Depends(get_db)):
     file_path = os.path.join("uploads", note.filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Файл отсутствует")
+
+    crud.add_download(db, note_id)
 
     filename = note.original_filename if note.original_filename else note.filename
     return FileResponse(file_path, filename=filename)
@@ -304,6 +335,9 @@ def favorite(note_id: int, request: Request, db=Depends(get_db)):
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, db=Depends(get_db)):
     user = get_user(request)
+    if not user or user.get("role") != "teacher":
+        return RedirectResponse("/", status_code=303)
+
     notes = crud.get_all_notes(db)
     total_notes, total_users, total_comments, total_favorites = crud.get_stats(db)
 
@@ -322,6 +356,10 @@ def dashboard(request: Request, db=Depends(get_db)):
 
 
 @app.post("/approve/{note_id}")
-def approve(note_id: int, db=Depends(get_db)):
+def approve(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user or user.get("role") != "teacher":
+        return RedirectResponse("/", status_code=303)
+
     crud.approve_note(db, note_id)
     return RedirectResponse("/dashboard", status_code=303)
