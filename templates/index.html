@@ -38,7 +38,7 @@
 
         <div class="hero">
             <h2>Загружай материалы, попадай в топ и собирай лайки</h2>
-            <p>Студенты делятся конспектами и практиками, преподаватели модерируют материалы, а лучшие авторы попадают в рейтинг.</p>
+            <p>Студенты делятся конспектами, преподаватели модерируют материалы, а лучшие авторы попадают в рейтинг.</p>
         </div>
 
         <div class="leaderboard-box">
@@ -130,14 +130,22 @@
                             <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
                             <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
 
-                            <form action="/like/{{ note.id }}" method="post" style="display:inline;">
-                                <button class="btn btn-like" type="submit">❤️ {{ note.likes }}</button>
-                            </form>
-
                             {% if user %}
+                                {% if note.id in liked_note_ids %}
+                                    <form action="/unlike/{{ note.id }}" method="post" style="display:inline;">
+                                        <button class="btn btn-like" type="submit">💔 Убрать лайк</button>
+                                    </form>
+                                {% else %}
+                                    <form action="/like/{{ note.id }}" method="post" style="display:inline;">
+                                        <button class="btn btn-like" type="submit">❤️ {{ note.likes }}</button>
+                                    </form>
+                                {% endif %}
+
                                 <form action="/favorite/{{ note.id }}" method="post" style="display:inline;">
                                     <button class="btn btn-primary" type="submit">⭐ Избранное</button>
                                 </form>
+                            {% else %}
+                                <a class="btn btn-like" href="/login">❤️ {{ note.likes }}</a>
                             {% endif %}
                         </div>
                     </div>
