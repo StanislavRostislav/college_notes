@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="page">
@@ -22,6 +23,7 @@
                 <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/profile">Профиль</a>
+                <a class="nav-link nav-link-primary" href="/assignments/create">Создать задание</a>
             </div>
         </div>
 
@@ -42,6 +44,26 @@
                 <h3>Избранное</h3>
                 <strong>{{ total_favorites }}</strong>
             </div>
+            <div class="stat-card">
+                <h3>Задания</h3>
+                <strong>{{ total_assignments }}</strong>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="note-card">
+                <div class="note-title">График по предметам</div>
+                <canvas id="subjectsChart"></canvas>
+            </div>
+
+            <div class="note-card">
+                <div class="note-title">Топ материалов по скачиваниям</div>
+                <canvas id="downloadsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="hero" style="margin:24px 0 18px;">
+            <h2 style="font-size:28px;">Материалы на проверке</h2>
         </div>
 
         <div class="grid">
@@ -66,33 +88,23 @@
 
                     <div class="drive-preview-shell">
                         {% if ext == 'pdf' %}
-                            <div class="drive-preview-toolbar">
-                                <span>PDF</span>
-                            </div>
+                            <div class="drive-preview-toolbar"><span>PDF</span></div>
                             <div class="drive-preview-body">
                                 <iframe src="/uploads/{{ note.filename }}#toolbar=0&navpanes=0&scrollbar=0" class="drive-preview-frame"></iframe>
                             </div>
                         {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
-                            <div class="drive-preview-toolbar">
-                                <span>Изображение</span>
-                            </div>
+                            <div class="drive-preview-toolbar"><span>Изображение</span></div>
                             <div class="drive-preview-body image-body">
                                 <img src="/uploads/{{ note.filename }}" class="drive-preview-image">
                             </div>
                         {% else %}
-                            <div class="drive-preview-toolbar">
-                                <span>Файл</span>
-                            </div>
-                            <div class="drive-preview-placeholder">
-                                📄 Предпросмотр недоступен
-                            </div>
+                            <div class="drive-preview-toolbar"><span>Файл</span></div>
+                            <div class="drive-preview-placeholder">📄 Предпросмотр недоступен</div>
                         {% endif %}
                     </div>
 
                     <div class="actions">
                         <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
-                        <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
-
                         {% if note.status == "pending" %}
                             <button
                                 class="btn btn-primary"
@@ -108,5 +120,34 @@
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        const subjectsLabels = {{ chart_data.subjects_labels | tojson }};
+        const subjectsCounts = {{ chart_data.subjects_counts | tojson }};
+        const materialsLabels = {{ chart_data.materials_labels | tojson }};
+        const materialsDownloads = {{ chart_data.materials_downloads | tojson }};
+
+        new Chart(document.getElementById('subjectsChart'), {
+            type: 'bar',
+            data: {
+                labels: subjectsLabels,
+                datasets: [{
+                    label: 'Материалы',
+                    data: subjectsCounts
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('downloadsChart'), {
+            type: 'bar',
+            data: {
+                labels: materialsLabels,
+                datasets: [{
+                    label: 'Скачивания',
+                    data: materialsDownloads
+                }]
+            }
+        });
+    </script>
 </body>
 </html>
