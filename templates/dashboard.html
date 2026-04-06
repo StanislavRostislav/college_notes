@@ -47,7 +47,7 @@
         <div class="grid">
             {% for note in notes %}
                 {% set ext = note.filename.split('.')[-1].lower() %}
-                <div class="note-card">
+                <div class="note-card" data-note-card="{{ note.id }}">
                     <div class="note-badges">
                         <span class="badge">{{ note.subject }}</span>
                         <span class="badge badge-green">{{ note.category }}</span>
@@ -94,9 +94,14 @@
                         <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
 
                         {% if note.status == "pending" %}
-                            <form action="/approve/{{ note.id }}" method="post">
-                                <button class="btn btn-primary" type="submit">Одобрить</button>
-                            </form>
+                            <button
+                                class="btn btn-primary"
+                                type="button"
+                                data-approve-btn="{{ note.id }}"
+                                onclick="approveNote({{ note.id }})"
+                            >
+                                Одобрить
+                            </button>
                         {% endif %}
                     </div>
                 </div>
