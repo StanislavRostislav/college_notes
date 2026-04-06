@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form, UploadFile, File, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -55,10 +55,15 @@ def home(
     top_users = crud.get_top_users(db)[:5]
 
     liked_note_ids = set()
+    favorite_note_ids = set()
+
     if user:
         for note in notes:
             if crud.has_user_liked(db, note.id, user["id"]):
                 liked_note_ids.add(note.id)
+
+        favorites = crud.get_favorites(db, user["id"])
+        favorite_note_ids = {fav.note_id for fav in favorites}
 
     return templates.TemplateResponse(
         "index.html",
@@ -73,7 +78,8 @@ def home(
             "subjects": subjects,
             "categories": categories,
             "top_users": top_users,
-            "liked_note_ids": liked_note_ids
+            "liked_note_ids": liked_note_ids,
+            "favorite_note_ids": favorite_note_ids,
         }
     )
 
@@ -214,8 +220,10 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
     crud.add_view(db, note_id)
 
     liked = False
+    favorited = False
     if user:
         liked = crud.has_user_liked(db, note_id, user["id"])
+        favorited = crud.is_favorite(db, user["id"], note_id)
 
     return templates.TemplateResponse(
         "note.html",
@@ -223,7 +231,8 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
             "request": request,
             "note": crud.get_note_by_id(db, note_id),
             "user": user,
-            "liked": liked
+            "liked": liked,
+            "favorited": favorited,
         }
     )
 
@@ -243,6 +252,97 @@ def download(note_id: int, db=Depends(get_db)):
     filename = note.original_filename if note.original_filename else note.filename
     return FileResponse(file_path, filename=filename)
 
+
+# ===== AJAX API =====
+
+@app.post("/api/like/{note_id}")
+def api_like(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
+
+    liked = crud.like_note(db, note_id, user["id"])
+    note = crud.get_note_by_id(db, note_id)
+    return {"ok": True, "liked": liked, "likes": note.likes if note else 0}
+
+
+@app.post("/api/unlike/{note_id}")
+def api_unlike(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
+
+    unliked = crud.unlike_note(db, note_id, user["id"])
+    note = crud.get_note_by_id(db, note_id)
+    return {"ok": True, "liked": not unliked, "likes": note.likes if note else 0}
+
+
+@app.post("/api/toggle-like/{note_id}")
+def api_toggle_like(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
+
+    if crud.has_user_liked(db, note_id, user["id"]):
+        crud.unlike_note(db, note_id, user["id"])
+        liked = False
+    else:
+        crud.like_note(db, note_id, user["id"])
+        liked = True
+
+    note = crud.get_note_by_id(db, note_id)
+    return {"ok": True, "liked": liked, "likes": note.likes if note else 0}
+
+
+@app.post("/api/comment/{note_id}")
+def api_comment(
+    note_id: int,
+    request: Request,
+    text: str = Form(...),
+    db=Depends(get_db)
+):
+    user = get_user(request)
+    if not user:
+        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
+
+    if not text.strip():
+        return JSONResponse({"ok": False, "error": "empty_comment"}, status_code=400)
+
+    crud.add_comment(db, note_id, text)
+    note = crud.get_note_by_id(db, note_id)
+
+    comments = [{"text": c.text} for c in note.comments] if note else []
+    return {"ok": True, "comments": comments}
+
+
+@app.post("/api/favorite/{note_id}")
+def api_favorite(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
+
+    is_now_favorite = crud.toggle_favorite(db, user["id"], note_id)
+    note = crud.get_note_by_id(db, note_id)
+    favorites_count = len(note.favorites) if note else 0
+
+    return {
+        "ok": True,
+        "favorited": is_now_favorite,
+        "favorites_count": favorites_count,
+    }
+
+
+@app.post("/api/approve/{note_id}")
+def api_approve(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user or user.get("role") != "teacher":
+        return JSONResponse({"ok": False, "error": "forbidden"}, status_code=403)
+
+    crud.approve_note(db, note_id)
+    return {"ok": True}
+
+
+# ===== old routes kept for compatibility =====
 
 @app.post("/like/{note_id}")
 def like(note_id: int, request: Request, db=Depends(get_db)):
