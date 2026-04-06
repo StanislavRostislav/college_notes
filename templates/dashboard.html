@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Админ-панель</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
 </head>
 <body>
     <div class="page">
@@ -18,6 +19,7 @@
             </div>
 
             <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/profile">Профиль</a>
             </div>
@@ -44,19 +46,59 @@
 
         <div class="grid">
             {% for note in notes %}
+                {% set ext = note.filename.split('.')[-1].lower() %}
                 <div class="note-card">
-                    <div class="note-title">{{ note.title }}</div>
-                    <div class="note-meta">
-                        {{ note.subject }} • {{ note.category }}<br>
-                        Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
-                        Статус: {{ note.status }}
+                    <div class="note-badges">
+                        <span class="badge">{{ note.subject }}</span>
+                        <span class="badge badge-green">{{ note.category }}</span>
+                        {% if note.status == "pending" %}
+                            <span class="badge badge-pending">На модерации</span>
+                        {% else %}
+                            <span class="badge">Одобрено</span>
+                        {% endif %}
                     </div>
 
-                    {% if note.status == "pending" %}
-                        <form action="/approve/{{ note.id }}" method="post">
-                            <button class="btn btn-primary">Одобрить</button>
-                        </form>
-                    {% endif %}
+                    <div class="note-title">{{ note.title }}</div>
+                    <div class="note-meta">
+                        Автор: {{ note.owner.username if note.owner else "Неизвестно" }}<br>
+                        👁 {{ note.views }} • ❤️ {{ note.likes }} • ⬇ {{ note.downloads }}
+                    </div>
+
+                    <div class="drive-preview-shell">
+                        {% if ext == 'pdf' %}
+                            <div class="drive-preview-toolbar">
+                                <span>PDF</span>
+                            </div>
+                            <div class="drive-preview-body">
+                                <iframe src="/uploads/{{ note.filename }}#toolbar=0&navpanes=0&scrollbar=0" class="drive-preview-frame"></iframe>
+                            </div>
+                        {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
+                            <div class="drive-preview-toolbar">
+                                <span>Изображение</span>
+                            </div>
+                            <div class="drive-preview-body image-body">
+                                <img src="/uploads/{{ note.filename }}" class="drive-preview-image">
+                            </div>
+                        {% else %}
+                            <div class="drive-preview-toolbar">
+                                <span>Файл</span>
+                            </div>
+                            <div class="drive-preview-placeholder">
+                                📄 Предпросмотр недоступен
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="actions">
+                        <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
+                        <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
+
+                        {% if note.status == "pending" %}
+                            <form action="/approve/{{ note.id }}" method="post">
+                                <button class="btn btn-primary" type="submit">Одобрить</button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
             {% endfor %}
         </div>
