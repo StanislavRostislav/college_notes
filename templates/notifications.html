@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Уведомления</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">🔔</div>
+                <div class="brand-text">
+                    <h1>Уведомления</h1>
+                    <p>Все события по вашему аккаунту</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link nav-link-primary" href="/notifications/read-all">Прочитать все</a>
+            </div>
+        </div>
+
+        {% if notifications %}
+            <div class="leaderboard-page">
+                {% for n in notifications %}
+                    <div class="leader-row">
+                        <div class="leader-rank-big">{% if n.is_read %}✓{% else %}•{% endif %}</div>
+                        <div class="leader-main">
+                            <div class="leader-name" style="font-size:20px;">{{ n.text }}</div>
+                            <div class="leader-role">{{ n.created_at }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Уведомлений пока нет</h3>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
