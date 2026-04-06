@@ -54,6 +54,12 @@ def home(
     categories = crud.get_categories(db)
     top_users = crud.get_top_users(db)[:5]
 
+    liked_note_ids = set()
+    if user:
+        for note in notes:
+            if crud.has_user_liked(db, note.id, user["id"]):
+                liked_note_ids.add(note.id)
+
     return templates.TemplateResponse(
         "index.html",
         {
@@ -66,7 +72,8 @@ def home(
             "sort": sort,
             "subjects": subjects,
             "categories": categories,
-            "top_users": top_users
+            "top_users": top_users,
+            "liked_note_ids": liked_note_ids
         }
     )
 
@@ -206,12 +213,17 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
 
     crud.add_view(db, note_id)
 
+    liked = False
+    if user:
+        liked = crud.has_user_liked(db, note_id, user["id"])
+
     return templates.TemplateResponse(
         "note.html",
         {
             "request": request,
             "note": crud.get_note_by_id(db, note_id),
-            "user": user
+            "user": user,
+            "liked": liked
         }
     )
 
@@ -233,8 +245,22 @@ def download(note_id: int, db=Depends(get_db)):
 
 
 @app.post("/like/{note_id}")
-def like(note_id: int, db=Depends(get_db)):
-    crud.like_note(db, note_id)
+def like(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    crud.like_note(db, note_id, user["id"])
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/unlike/{note_id}")
+def unlike(note_id: int, request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    crud.unlike_note(db, note_id, user["id"])
     return RedirectResponse("/", status_code=303)
 
 
