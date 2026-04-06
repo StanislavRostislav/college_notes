@@ -174,6 +174,18 @@
                             {% else %}
                                 <a class="btn btn-like" href="/login">❤️ {{ note.likes }}</a>
                             {% endif %}
+                            {% if user %}
+                                <div class="comment-box">
+                                    <input data-comment-input="{{ note.id }}" placeholder="Написать комментарий...">
+                                    <button class="btn btn-primary" type="button" onclick="submitComment({{ note.id }})">Отправить</button>
+                                </div>
+                            {% endif %}
+
+                            <div class="comments" data-comment-list="{{ note.id }}">
+                                {% for c in note.comments %}
+                                    <div class="comment">💬 {{ c.text }}</div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
