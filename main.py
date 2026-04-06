@@ -417,3 +417,103 @@ def dashboard(request: Request, db=Depends(get_db)):
             "user": user
         }
     )
+@app.get("/assignments", response_class=HTMLResponse)
+def assignments_page(request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    assignments = crud.get_assignments(db)
+    unread_notifications = crud.get_unread_notifications_count(db, user["id"])
+
+    return templates.TemplateResponse(
+        "assignments.html",
+        {
+            "request": request,
+            "user": user,
+            "assignments": assignments,
+            "unread_notifications": unread_notifications
+        }
+    )
+
+
+@app.get("/assignments/create", response_class=HTMLResponse)
+def create_assignment_page(request: Request):
+    user = get_user(request)
+    if not user or user.get("role") != "teacher":
+        return RedirectResponse("/", status_code=303)
+
+    return templates.TemplateResponse(
+        "create_assignment.html",
+        {
+            "request": request,
+            "user": user
+        }
+    )
+
+
+@app.post("/assignments/create")
+def create_assignment(
+    request: Request,
+    title: str = Form(...),
+    subject: str = Form(...),
+    deadline: str = Form(...),
+    description: str = Form(""),
+    file: UploadFile = File(None),
+    db=Depends(get_db)
+):
+    user = get_user(request)
+    if not user or user.get("role") != "teacher":
+        return RedirectResponse("/", status_code=303)
+
+    saved_file_name = ""
+    original_file_name = ""
+
+    if file and file.filename:
+        original_file_name = file.filename
+        ext = os.path.splitext(file.filename)[1]
+        saved_file_name = f"{uuid.uuid4().hex}{ext}"
+        path = os.path.join("uploads", saved_file_name)
+
+        with open(path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    crud.create_assignment(
+        db,
+        title=title,
+        subject=subject,
+        description=description,
+        deadline=deadline,
+        file_name=saved_file_name,
+        original_file_name=original_file_name,
+        creator_id=user["id"]
+    )
+    return RedirectResponse("/assignments", status_code=303)
+
+
+@app.get("/notifications", response_class=HTMLResponse)
+def notifications_page(request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    notifications = crud.get_notifications(db, user["id"])
+
+    return templates.TemplateResponse(
+        "notifications.html",
+        {
+            "request": request,
+            "user": user,
+            "notifications": notifications
+        }
+    )
+
+
+@app.get("/notifications/read-all")
+def notifications_read_all(request: Request, db=Depends(get_db)):
+    user = get_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    crud.mark_all_notifications_read(db, user["id"])
+    return RedirectResponse("/notifications", status_code=303)
