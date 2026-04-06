@@ -22,6 +22,7 @@
                 <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
+                <a class="nav-link" href="/notifications">Уведомления ({{ unread_notifications }})</a>
             </div>
         </div>
 
@@ -34,11 +35,36 @@
                 <h3>Избранное</h3>
                 <strong>{{ favorites|length }}</strong>
             </div>
+            <div class="stat-card">
+                <h3>Очки</h3>
+                <strong>{{ user_stats.points }}</strong>
+            </div>
+            <div class="stat-card">
+                <h3>Лайки</h3>
+                <strong>{{ user_stats.likes_sum }}</strong>
+            </div>
+        </div>
+
+        <div class="hero" style="margin-bottom:18px;">
+            <h2 style="font-size:28px;">Мои достижения</h2>
+            <p>Загружай больше, собирай лайки и поднимайся в рейтинге пользователей.</p>
+        </div>
+
+        <div class="leaderboard-box" style="margin-bottom:20px;">
+            <div class="section-title">🎖 Достижения</div>
+            <div class="leaderboard-mini">
+                {% for a in user_stats.achievements %}
+                    <div class="leader-mini-card">
+                        <div class="leader-info">
+                            <strong>{{ a }}</strong>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
 
         <div class="hero" style="margin-bottom:18px;">
             <h2 style="font-size:28px;">Мои конспекты</h2>
-            <p>Загружай больше, собирай лайки и поднимайся в рейтинге пользователей.</p>
         </div>
 
         {% if notes %}
@@ -74,7 +100,6 @@
 
         <div class="hero" style="margin:28px 0 18px;">
             <h2 style="font-size:28px;">Избранное</h2>
-            <p>Сохранённые материалы.</p>
         </div>
 
         {% if favorites %}
