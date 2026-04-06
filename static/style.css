@@ -586,3 +586,88 @@ html[data-theme="light"] .form-select {
         width: min(100% - 20px, 1200px);
     }
 }
+
+/* ===== Google Drive like mini preview ===== */
+
+.drive-preview-shell {
+    margin-top: 10px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--panel-2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.drive-preview-toolbar {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.drive-preview-body {
+    height: 180px;
+    background: #ffffff;
+    overflow: hidden;
+    position: relative;
+}
+
+.image-body {
+    background: #0d1526;
+}
+
+.drive-preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: #ffffff;
+}
+
+.drive-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #0d1526;
+}
+
+.drive-preview-placeholder {
+    height: 180px;
+    display: grid;
+    place-items: center;
+    background: var(--preview-bg);
+    color: var(--muted);
+    font-weight: 600;
+    text-align: center;
+    padding: 16px;
+}
+
+/* чтобы карточки были аккуратнее */
+.note-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.note-card .actions {
+    margin-top: 14px;
+}
+
+/* для светлой темы */
+html[data-theme="light"] .drive-preview-toolbar {
+    background: rgba(0,0,0,0.03);
+}
+
+html[data-theme="light"] .drive-preview-body {
+    background: #ffffff;
+}
+
+html[data-theme="light"] .image-body {
+    background: #edf3fb;
+}
