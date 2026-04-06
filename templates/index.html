@@ -148,19 +148,29 @@
                             <a class="btn btn-secondary" href="/download/{{ note.id }}">Скачать</a>
 
                             {% if user %}
-                                {% if note.id in liked_note_ids %}
-                                    <form action="/unlike/{{ note.id }}" method="post" style="display:inline;">
-                                        <button class="btn btn-like" type="submit">💔 Убрать лайк</button>
-                                    </form>
-                                {% else %}
-                                    <form action="/like/{{ note.id }}" method="post" style="display:inline;">
-                                        <button class="btn btn-like" type="submit">❤️ {{ note.likes }}</button>
-                                    </form>
-                                {% endif %}
+                                <button
+                                    type="button"
+                                    class="btn btn-like"
+                                    data-like-btn="{{ note.id }}"
+                                    data-liked="{% if note.id in liked_note_ids %}true{% else %}false{% endif %}"
+                                    onclick="toggleLike({{ note.id }})"
+                                >
+                                    {% if note.id in liked_note_ids %}
+                                        💔 Убрать лайк <span data-like-count="{{ note.id }}">{{ note.likes }}</span>
+                                    {% else %}
+                                        ❤️ <span data-like-count="{{ note.id }}">{{ note.likes }}</span>
+                                    {% endif %}
+                                </button>
 
-                                <form action="/favorite/{{ note.id }}" method="post" style="display:inline;">
-                                    <button class="btn btn-primary" type="submit">⭐ Избранное</button>
-                                </form>
+                                <button
+                                    type="button"
+                                    class="btn btn-primary"
+                                    data-favorite-btn="{{ note.id }}"
+                                    data-favorited="{% if note.id in favorite_note_ids %}true{% else %}false{% endif %}"
+                                    onclick="toggleFavorite({{ note.id }})"
+                                >
+                                    {% if note.id in favorite_note_ids %}⭐ В избранном{% else %}⭐ Избранное{% endif %}
+                                </button>
                             {% else %}
                                 <a class="btn btn-like" href="/login">❤️ {{ note.likes }}</a>
                             {% endif %}
