@@ -150,7 +150,7 @@
                             {% if user %}
                                 <button
                                     type="button"
-                                    class="btn btn-like"
+                                    class="btn btn-like {% if note.id in liked_note_ids %}btn-like-active{% endif %}"
                                     data-like-btn="{{ note.id }}"
                                     data-liked="{% if note.id in liked_note_ids %}true{% else %}false{% endif %}"
                                     onclick="toggleLike({{ note.id }})"
@@ -174,18 +174,19 @@
                             {% else %}
                                 <a class="btn btn-like" href="/login">❤️ {{ note.likes }}</a>
                             {% endif %}
-                            {% if user %}
-                                <div class="comment-box">
-                                    <input data-comment-input="{{ note.id }}" placeholder="Написать комментарий...">
-                                    <button class="btn btn-primary" type="button" onclick="submitComment({{ note.id }})">Отправить</button>
-                                </div>
-                            {% endif %}
+                        </div>
 
-                            <div class="comments" data-comment-list="{{ note.id }}">
-                                {% for c in note.comments %}
-                                    <div class="comment">💬 {{ c.text }}</div>
-                                {% endfor %}
+                        {% if user %}
+                            <div class="comment-box">
+                                <input data-comment-input="{{ note.id }}" placeholder="Написать комментарий...">
+                                <button class="btn btn-primary" type="button" onclick="submitComment({{ note.id }})">Отправить</button>
                             </div>
+                        {% endif %}
+
+                        <div class="comments" data-comment-list="{{ note.id }}">
+                            {% for c in note.comments %}
+                                <div class="comment">💬 {{ c.text }}</div>
+                            {% endfor %}
                         </div>
                     </div>
                 {% endfor %}
