@@ -1,8 +1,16 @@
 from sqlalchemy.orm import joinedload
 from sqlalchemy import or_, func, desc
+from datetime import datetime
 import models
 
 
+def now_str():
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+# =========================
+# USERS
+# =========================
 def create_user(db, username, password, role="student"):
     user = models.User(username=username, password=password, role=role)
     db.add(user)
@@ -19,6 +27,9 @@ def get_user_by_id(db, user_id):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
+# =========================
+# NOTES
+# =========================
 def create_note(db, title, subject, category, description, filename, original_filename, created_at, user_id, status="pending"):
     note = models.Note(
         title=title,
@@ -44,6 +55,19 @@ def get_notes(db, search="", subject="", category="", sort="new", viewer=None):
         joinedload(models.Note.favorites),
         joinedload(models.Note.liked_by)
     )
+
+    if viewer:
+        if viewer.get("role") == "teacher":
+            pass
+        else:
+            query = query.filter(
+                or_(
+                    models.Note.status == "approved",
+                    models.Note.owner_id == viewer.get("id")
+                )
+            )
+    else:
+        query = query.filter(models.Note.status == "approved")
 
     if search:
         query = query.filter(
@@ -124,6 +148,11 @@ def approve_note(db, note_id):
     if note:
         note.status = "approved"
         db.commit()
+        create_notification(
+            db,
+            note.owner_id,
+            f"✅ Ваш материал «{note.title}» был одобрен преподавателем."
+        )
 
 
 def like_note(db, note_id, user_id):
@@ -143,6 +172,14 @@ def like_note(db, note_id, user_id):
     db.add(like)
     note.likes += 1
     db.commit()
+
+    if note.owner_id != user_id:
+        create_notification(
+            db,
+            note.owner_id,
+            f"❤️ Кто-то поставил лайк вашему материалу «{note.title}»."
+        )
+
     return True
 
 
@@ -171,12 +208,20 @@ def has_user_liked(db, note_id, user_id):
     ).first() is not None
 
 
-def add_comment(db, note_id, text):
+def add_comment(db, note_id, text, author_user_id=None):
     text = text.strip()
     if text:
         comment = models.Comment(text=text, note_id=note_id)
         db.add(comment)
         db.commit()
+
+        note = db.query(models.Note).get(note_id)
+        if note and author_user_id and note.owner_id != author_user_id:
+            create_notification(
+                db,
+                note.owner_id,
+                f"💬 Новый комментарий к материалу «{note.title}»."
+            )
 
 
 def add_view(db, note_id):
@@ -199,6 +244,8 @@ def toggle_favorite(db, user_id, note_id):
         models.Favorite.note_id == note_id
     ).first()
 
+    note = db.query(models.Note).get(note_id)
+
     if fav:
         db.delete(fav)
         db.commit()
@@ -207,6 +254,13 @@ def toggle_favorite(db, user_id, note_id):
         fav = models.Favorite(user_id=user_id, note_id=note_id)
         db.add(fav)
         db.commit()
+
+        if note and note.owner_id != user_id:
+            create_notification(
+                db,
+                note.owner_id,
+                f"⭐ Ваш материал «{note.title}» добавили в избранное."
+            )
         return True
 
 
@@ -226,12 +280,91 @@ def get_favorites(db, user_id):
     ).filter(models.Favorite.user_id == user_id).all()
 
 
+# =========================
+# ASSIGNMENTS
+# =========================
+def create_assignment(db, title, subject, description, deadline, file_name, original_file_name, creator_id):
+    assignment = models.Assignment(
+        title=title,
+        subject=subject,
+        description=description,
+        deadline=deadline,
+        file_name=file_name,
+        original_file_name=original_file_name,
+        created_at=now_str(),
+        creator_id=creator_id
+    )
+    db.add(assignment)
+    db.commit()
+    db.refresh(assignment)
+
+    students = db.query(models.User).filter(models.User.role == "student").all()
+    for student in students:
+        create_notification(
+            db,
+            student.id,
+            f"📚 Новое задание: «{assignment.title}». Дедлайн: {assignment.deadline}"
+        )
+
+    return assignment
+
+
+def get_assignments(db):
+    return db.query(models.Assignment).options(
+        joinedload(models.Assignment.creator)
+    ).order_by(models.Assignment.id.desc()).all()
+
+
+# =========================
+# NOTIFICATIONS
+# =========================
+def create_notification(db, user_id, text):
+    notification = models.Notification(
+        user_id=user_id,
+        text=text,
+        is_read=False,
+        created_at=now_str()
+    )
+    db.add(notification)
+    db.commit()
+    return notification
+
+
+def get_notifications(db, user_id):
+    return db.query(models.Notification).filter(
+        models.Notification.user_id == user_id
+    ).order_by(models.Notification.id.desc()).all()
+
+
+def get_unread_notifications_count(db, user_id):
+    return db.query(models.Notification).filter(
+        models.Notification.user_id == user_id,
+        models.Notification.is_read == False
+    ).count()
+
+
+def mark_all_notifications_read(db, user_id):
+    notifications = db.query(models.Notification).filter(
+        models.Notification.user_id == user_id,
+        models.Notification.is_read == False
+    ).all()
+
+    for n in notifications:
+        n.is_read = True
+
+    db.commit()
+
+
+# =========================
+# STATS / ACHIEVEMENTS
+# =========================
 def get_stats(db):
     total_notes = db.query(models.Note).count()
     total_users = db.query(models.User).count()
     total_comments = db.query(models.Comment).count()
     total_favorites = db.query(models.Favorite).count()
-    return total_notes, total_users, total_comments, total_favorites
+    total_assignments = db.query(models.Assignment).count()
+    return total_notes, total_users, total_comments, total_favorites, total_assignments
 
 
 def get_subjects(db):
@@ -260,3 +393,72 @@ def get_top_users(db):
         .order_by(desc("likes_sum"), desc("downloads_sum"), desc("notes_count"))
         .all()
     )
+
+
+def get_user_points_and_achievements(db, user_id):
+    user_notes = db.query(models.Note).filter(models.Note.owner_id == user_id).all()
+
+    notes_count = len(user_notes)
+    likes_sum = sum(n.likes for n in user_notes)
+    downloads_sum = sum(n.downloads for n in user_notes)
+    views_sum = sum(n.views for n in user_notes)
+
+    points = notes_count * 10 + likes_sum * 3 + downloads_sum * 2 + views_sum
+
+    achievements = []
+
+    if notes_count >= 1:
+        achievements.append("🚀 Первый материал")
+    if notes_count >= 5:
+        achievements.append("📚 Активный автор")
+    if likes_sum >= 10:
+        achievements.append("❤️ Любимец студентов")
+    if downloads_sum >= 10:
+        achievements.append("⬇ Полезный материал")
+    if points >= 100:
+        achievements.append("🏆 Топ-автор")
+
+    if not achievements:
+        achievements.append("🙂 Пока без достижений")
+
+    return {
+        "points": points,
+        "notes_count": notes_count,
+        "likes_sum": likes_sum,
+        "downloads_sum": downloads_sum,
+        "views_sum": views_sum,
+        "achievements": achievements
+    }
+
+
+def get_dashboard_chart_data(db):
+    top_subjects = (
+        db.query(
+            models.Note.subject,
+            func.count(models.Note.id).label("count")
+        )
+        .group_by(models.Note.subject)
+        .order_by(desc("count"))
+        .limit(6)
+        .all()
+    )
+
+    top_materials = (
+        db.query(models.Note)
+        .order_by(models.Note.downloads.desc(), models.Note.likes.desc())
+        .limit(5)
+        .all()
+    )
+
+    subjects_labels = [x.subject for x in top_subjects]
+    subjects_counts = [x.count for x in top_subjects]
+
+    materials_labels = [x.title for x in top_materials]
+    materials_downloads = [x.downloads for x in top_materials]
+
+    return {
+        "subjects_labels": subjects_labels,
+        "subjects_counts": subjects_counts,
+        "materials_labels": materials_labels,
+        "materials_downloads": materials_downloads,
+    }
