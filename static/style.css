@@ -671,3 +671,12 @@ html[data-theme="light"] .drive-preview-body {
 html[data-theme="light"] .image-body {
     background: #edf3fb;
 }
+
+.btn-like-active {
+    background: linear-gradient(135deg, #ff5f7a, #ff8b54);
+}
+
+canvas {
+    max-width: 100%;
+    margin-top: 12px;
+}
