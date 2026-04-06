@@ -9,7 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(String, default="student")  # student / teacher
+    role = Column(String, default="student")
 
     notes = relationship("Note", back_populates="owner", cascade="all, delete-orphan")
     favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
@@ -29,7 +29,7 @@ class Note(Base):
     likes = Column(Integer, default=0)
     views = Column(Integer, default=0)
     downloads = Column(Integer, default=0)
-    status = Column(String, default="pending")  # pending / approved
+    status = Column(String, default="pending")
     created_at = Column(String, default="")
 
     owner_id = Column(Integer, ForeignKey("users.id"))
