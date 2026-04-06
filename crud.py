@@ -210,6 +210,13 @@ def toggle_favorite(db, user_id, note_id):
         return True
 
 
+def is_favorite(db, user_id, note_id):
+    return db.query(models.Favorite).filter(
+        models.Favorite.user_id == user_id,
+        models.Favorite.note_id == note_id
+    ).first() is not None
+
+
 def get_favorites(db, user_id):
     return db.query(models.Favorite).options(
         joinedload(models.Favorite.note).joinedload(models.Note.owner),
