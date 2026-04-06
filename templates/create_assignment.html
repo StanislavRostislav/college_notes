@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать задание</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">📝</div>
+                <div class="brand-text">
+                    <h1>Создание задания</h1>
+                    <p>Преподавательская функция</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
+                <a class="nav-link" href="/dashboard">Назад</a>
+            </div>
+        </div>
+
+        <div class="center-wrap">
+            <div class="auth-card">
+                <h2>Новое задание</h2>
+
+                <form class="form" method="post" enctype="multipart/form-data">
+                    <input name="title" placeholder="Название задания" required>
+                    <input name="subject" placeholder="Предмет" required>
+                    <input name="deadline" placeholder="Дедлайн, например 2026-04-20" required>
+                    <input name="description" placeholder="Описание задания">
+
+                    <div class="file-drop">
+                        <div>📎 Прикрепить файл задания</div>
+                        <input type="file" name="file">
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Создать</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
