@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Задания</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="page">
+        <div class="navbar">
+            <div class="brand">
+                <div class="brand-logo">📘</div>
+                <div class="brand-text">
+                    <h1>Задания</h1>
+                    <p>Учебные задания и дедлайны</p>
+                </div>
+            </div>
+
+            <div class="nav-links">
+                <button class="nav-link theme-toggle" type="button" onclick="toggleTheme()">🌓 Тема</button>
+                <a class="nav-link" href="/">Главная</a>
+                {% if user and user.role == "teacher" %}
+                    <a class="nav-link nav-link-primary" href="/assignments/create">Создать задание</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if assignments %}
+            <div class="grid">
+                {% for a in assignments %}
+                    <div class="note-card">
+                        <div class="note-badges">
+                            <span class="badge">{{ a.subject }}</span>
+                            <span class="badge badge-pending">Дедлайн: {{ a.deadline }}</span>
+                        </div>
+
+                        <div class="note-title">{{ a.title }}</div>
+                        <div class="note-meta">
+                            Создал: {{ a.creator.username if a.creator else "Неизвестно" }}<br>
+                            {{ a.created_at }}
+                        </div>
+
+                        {% if a.description %}
+                            <div class="comment">{{ a.description }}</div>
+                        {% endif %}
+
+                        <div class="actions">
+                            {% if a.file_name %}
+                                <a class="btn btn-secondary" href="/uploads/{{ a.file_name }}" download>Скачать файл задания</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Пока нет заданий</h3>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
