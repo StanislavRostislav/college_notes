@@ -13,10 +13,9 @@ async function toggleLike(noteId) {
     const countEl = document.querySelector(`[data-like-count="${noteId}"]`);
     if (!btn || !countEl) return;
 
-    const liked = btn.dataset.liked === "true";
-    const url = liked ? `/api/unlike/${noteId}` : `/api/like/${noteId}`;
-
-    const res = await fetch(url, { method: "POST" });
+    const res = await fetch(`/api/toggle-like/${noteId}`, {
+        method: "POST"
+    });
 
     if (res.status === 401) {
         window.location.href = "/login";
@@ -30,11 +29,11 @@ async function toggleLike(noteId) {
     countEl.textContent = data.likes;
 
     if (data.liked) {
+        btn.classList.add("btn-like-active");
         btn.innerHTML = `💔 Убрать лайк <span data-like-count="${noteId}">${data.likes}</span>`;
-        btn.classList.add("btn-like");
     } else {
+        btn.classList.remove("btn-like-active");
         btn.innerHTML = `❤️ <span data-like-count="${noteId}">${data.likes}</span>`;
-        btn.classList.add("btn-like");
     }
 }
 
@@ -77,7 +76,9 @@ async function toggleFavorite(noteId) {
     const btn = document.querySelector(`[data-favorite-btn="${noteId}"]`);
     if (!btn) return;
 
-    const res = await fetch(`/api/favorite/${noteId}`, { method: "POST" });
+    const res = await fetch(`/api/favorite/${noteId}`, {
+        method: "POST"
+    });
 
     if (res.status === 401) {
         window.location.href = "/login";
@@ -93,7 +94,10 @@ async function toggleFavorite(noteId) {
 
 async function approveNote(noteId) {
     const card = document.querySelector(`[data-note-card="${noteId}"]`);
-    const res = await fetch(`/api/approve/${noteId}`, { method: "POST" });
+
+    const res = await fetch(`/api/approve/${noteId}`, {
+        method: "POST"
+    });
 
     if (res.status === 403) return;
 
@@ -101,16 +105,14 @@ async function approveNote(noteId) {
     if (!data.ok) return;
 
     if (card) {
-        const badge = card.querySelector(".badge-pending");
-        if (badge) {
-            badge.textContent = "Одобрено";
-            badge.classList.remove("badge-pending");
+        const pendingBadge = card.querySelector(".badge-pending");
+        if (pendingBadge) {
+            pendingBadge.textContent = "Одобрено";
+            pendingBadge.classList.remove("badge-pending");
         }
 
         const approveBtn = card.querySelector(`[data-approve-btn="${noteId}"]`);
-        if (approveBtn) {
-            approveBtn.remove();
-        }
+        if (approveBtn) approveBtn.remove();
     }
 }
 
