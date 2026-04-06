@@ -23,6 +23,8 @@
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/users">Пользователи</a>
                 {% if user %}
+                    <a class="nav-link" href="/assignments">Задания</a>
+                    <a class="nav-link" href="/notifications">Уведомления ({{ unread_notifications }})</a>
                     <a class="nav-link nav-link-primary" href="/upload">Загрузить</a>
                     <a class="nav-link" href="/profile">Профиль</a>
                     {% if user.role == "teacher" %}
@@ -38,7 +40,7 @@
 
         <div class="hero">
             <h2>Загружай материалы, попадай в топ и собирай лайки</h2>
-            <p>Студенты делятся конспектами, преподаватели модерируют материалы, а лучшие авторы попадают в рейтинг.</p>
+            <p>Студенты делятся конспектами, преподаватели выдают задания и модерируют материалы, а лучшие авторы попадают в рейтинг.</p>
         </div>
 
         <div class="leaderboard-box">
