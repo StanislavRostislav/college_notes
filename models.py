@@ -13,6 +13,7 @@ class User(Base):
 
     notes = relationship("Note", back_populates="owner", cascade="all, delete-orphan")
     favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
 
 
 class Note(Base):
@@ -36,6 +37,7 @@ class Note(Base):
 
     comments = relationship("Comment", back_populates="note", cascade="all, delete-orphan")
     favorites = relationship("Favorite", back_populates="note", cascade="all, delete-orphan")
+    liked_by = relationship("Like", back_populates="note", cascade="all, delete-orphan")
 
 
 class Comment(Base):
@@ -57,3 +59,14 @@ class Favorite(Base):
 
     user = relationship("User", back_populates="favorites")
     note = relationship("Note", back_populates="favorites")
+
+
+class Like(Base):
+    __tablename__ = "likes_table"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    note_id = Column(Integer, ForeignKey("notes.id"))
+
+    user = relationship("User", back_populates="likes")
+    note = relationship("Note", back_populates="liked_by")
