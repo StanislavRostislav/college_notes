@@ -65,6 +65,10 @@ def home(
         favorites = crud.get_favorites(db, user["id"])
         favorite_note_ids = {fav.note_id for fav in favorites}
 
+    unread_notifications = 0
+    if user:
+        unread_notifications = crud.get_unread_notifications_count(db, user["id"])
+
     return templates.TemplateResponse(
         "index.html",
         {
@@ -80,6 +84,7 @@ def home(
             "top_users": top_users,
             "liked_note_ids": liked_note_ids,
             "favorite_note_ids": favorite_note_ids,
+            "unread_notifications": unread_notifications,
         }
     )
 
@@ -225,6 +230,10 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
         liked = crud.has_user_liked(db, note_id, user["id"])
         favorited = crud.is_favorite(db, user["id"], note_id)
 
+    unread_notifications = 0
+    if user:
+        unread_notifications = crud.get_unread_notifications_count(db, user["id"])
+
     return templates.TemplateResponse(
         "note.html",
         {
@@ -233,6 +242,7 @@ def note_page(note_id: int, request: Request, db=Depends(get_db)):
             "user": user,
             "liked": liked,
             "favorited": favorited,
+            "unread_notifications": unread_notifications,
         }
     )
 
@@ -252,6 +262,10 @@ def download(note_id: int, db=Depends(get_db)):
     filename = note.original_filename if note.original_filename else note.filename
     return FileResponse(file_path, filename=filename)
 
+
+# =========================
+# AJAX API
+# =========================
 
 @app.post("/api/toggle-like/{note_id}")
 def api_toggle_like(note_id: int, request: Request, db=Depends(get_db)):
@@ -284,7 +298,7 @@ def api_comment(
     if not text.strip():
         return JSONResponse({"ok": False, "error": "empty_comment"}, status_code=400)
 
-    crud.add_comment(db, note_id, text)
+    crud.add_comment(db, note_id, text, user["id"])
     note = crud.get_note_by_id(db, note_id)
 
     comments = [{"text": c.text} for c in note.comments] if note else []
@@ -318,6 +332,10 @@ def api_approve(note_id: int, request: Request, db=Depends(get_db)):
     return {"ok": True}
 
 
+# =========================
+# PROFILE / EDIT / DELETE
+# =========================
+
 @app.get("/profile", response_class=HTMLResponse)
 def profile(request: Request, db=Depends(get_db)):
     user = get_user(request)
@@ -326,6 +344,8 @@ def profile(request: Request, db=Depends(get_db)):
 
     notes = crud.get_user_notes(db, user["id"])
     favorites = crud.get_favorites(db, user["id"])
+    user_stats = crud.get_user_points_and_achievements(db, user["id"])
+    unread_notifications = crud.get_unread_notifications_count(db, user["id"])
 
     return templates.TemplateResponse(
         "profile.html",
@@ -333,7 +353,9 @@ def profile(request: Request, db=Depends(get_db)):
             "request": request,
             "user": user,
             "notes": notes,
-            "favorites": favorites
+            "favorites": favorites,
+            "user_stats": user_stats,
+            "unread_notifications": unread_notifications,
         }
     )
 
@@ -396,6 +418,10 @@ def delete_note(note_id: int, request: Request, db=Depends(get_db)):
     return RedirectResponse("/profile", status_code=303)
 
 
+# =========================
+# DASHBOARD
+# =========================
+
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, db=Depends(get_db)):
     user = get_user(request)
@@ -403,7 +429,8 @@ def dashboard(request: Request, db=Depends(get_db)):
         return RedirectResponse("/", status_code=303)
 
     notes = crud.get_all_notes(db)
-    total_notes, total_users, total_comments, total_favorites = crud.get_stats(db)
+    total_notes, total_users, total_comments, total_favorites, total_assignments = crud.get_stats(db)
+    chart_data = crud.get_dashboard_chart_data(db)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -414,9 +441,17 @@ def dashboard(request: Request, db=Depends(get_db)):
             "total_users": total_users,
             "total_comments": total_comments,
             "total_favorites": total_favorites,
+            "total_assignments": total_assignments,
+            "chart_data": chart_data,
             "user": user
         }
     )
+
+
+# =========================
+# ASSIGNMENTS
+# =========================
+
 @app.get("/assignments", response_class=HTMLResponse)
 def assignments_page(request: Request, db=Depends(get_db)):
     user = get_user(request)
@@ -490,6 +525,10 @@ def create_assignment(
     )
     return RedirectResponse("/assignments", status_code=303)
 
+
+# =========================
+# NOTIFICATIONS
+# =========================
 
 @app.get("/notifications", response_class=HTMLResponse)
 def notifications_page(request: Request, db=Depends(get_db)):
