@@ -118,13 +118,30 @@
                             {{ note.created_at }}
                         </div>
 
-                        {% if ext == 'pdf' %}
-                            <iframe src="/uploads/{{ note.filename }}" class="preview-frame"></iframe>
-                        {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
-                            <img src="/uploads/{{ note.filename }}" class="preview-image">
-                        {% else %}
-                            <div class="preview-placeholder">📄 Превью недоступно</div>
-                        {% endif %}
+                        <div class="drive-preview-shell">
+                            {% if ext == 'pdf' %}
+                                <div class="drive-preview-toolbar">
+                                    <span>PDF</span>
+                                </div>
+                                <div class="drive-preview-body">
+                                    <iframe src="/uploads/{{ note.filename }}#toolbar=0&navpanes=0&scrollbar=0" class="drive-preview-frame"></iframe>
+                                </div>
+                            {% elif ext in ['png', 'jpg', 'jpeg', 'webp'] %}
+                                <div class="drive-preview-toolbar">
+                                    <span>Изображение</span>
+                                </div>
+                                <div class="drive-preview-body image-body">
+                                    <img src="/uploads/{{ note.filename }}" class="drive-preview-image">
+                                </div>
+                            {% else %}
+                                <div class="drive-preview-toolbar">
+                                    <span>Файл</span>
+                                </div>
+                                <div class="drive-preview-placeholder">
+                                    📄 Предпросмотр недоступен
+                                </div>
+                            {% endif %}
+                        </div>
 
                         <div class="actions">
                             <a class="btn btn-secondary" href="/note/{{ note.id }}">Открыть</a>
