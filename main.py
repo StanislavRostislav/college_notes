@@ -253,30 +253,6 @@ def download(note_id: int, db=Depends(get_db)):
     return FileResponse(file_path, filename=filename)
 
 
-# ===== AJAX API =====
-
-@app.post("/api/like/{note_id}")
-def api_like(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user:
-        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
-
-    liked = crud.like_note(db, note_id, user["id"])
-    note = crud.get_note_by_id(db, note_id)
-    return {"ok": True, "liked": liked, "likes": note.likes if note else 0}
-
-
-@app.post("/api/unlike/{note_id}")
-def api_unlike(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user:
-        return JSONResponse({"ok": False, "error": "auth_required"}, status_code=401)
-
-    unliked = crud.unlike_note(db, note_id, user["id"])
-    note = crud.get_note_by_id(db, note_id)
-    return {"ok": True, "liked": not unliked, "likes": note.likes if note else 0}
-
-
 @app.post("/api/toggle-like/{note_id}")
 def api_toggle_like(note_id: int, request: Request, db=Depends(get_db)):
     user = get_user(request)
@@ -340,34 +316,6 @@ def api_approve(note_id: int, request: Request, db=Depends(get_db)):
 
     crud.approve_note(db, note_id)
     return {"ok": True}
-
-
-# ===== old routes kept for compatibility =====
-
-@app.post("/like/{note_id}")
-def like(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    crud.like_note(db, note_id, user["id"])
-    return RedirectResponse("/", status_code=303)
-
-
-@app.post("/unlike/{note_id}")
-def unlike(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    crud.unlike_note(db, note_id, user["id"])
-    return RedirectResponse("/", status_code=303)
-
-
-@app.post("/comment/{note_id}")
-def comment(note_id: int, text: str = Form(...), db=Depends(get_db)):
-    crud.add_comment(db, note_id, text)
-    return RedirectResponse(f"/note/{note_id}", status_code=303)
 
 
 @app.get("/profile", response_class=HTMLResponse)
@@ -448,16 +396,6 @@ def delete_note(note_id: int, request: Request, db=Depends(get_db)):
     return RedirectResponse("/profile", status_code=303)
 
 
-@app.post("/favorite/{note_id}")
-def favorite(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    crud.toggle_favorite(db, user["id"], note_id)
-    return RedirectResponse("/", status_code=303)
-
-
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, db=Depends(get_db)):
     user = get_user(request)
@@ -479,13 +417,3 @@ def dashboard(request: Request, db=Depends(get_db)):
             "user": user
         }
     )
-
-
-@app.post("/approve/{note_id}")
-def approve(note_id: int, request: Request, db=Depends(get_db)):
-    user = get_user(request)
-    if not user or user.get("role") != "teacher":
-        return RedirectResponse("/", status_code=303)
-
-    crud.approve_note(db, note_id)
-    return RedirectResponse("/dashboard", status_code=303)
