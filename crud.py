@@ -41,12 +41,9 @@ def get_notes(db, search="", subject="", category="", sort="new", viewer=None):
     query = db.query(models.Note).options(
         joinedload(models.Note.comments),
         joinedload(models.Note.owner),
-        joinedload(models.Note.favorites)
+        joinedload(models.Note.favorites),
+        joinedload(models.Note.liked_by)
     )
-
-    # Студенты видят только approved, преподаватели видят все
-    if not viewer or viewer.get("role") != "teacher":
-        query = query.filter(models.Note.status == "approved")
 
     if search:
         query = query.filter(
@@ -80,7 +77,8 @@ def get_all_notes(db):
     return db.query(models.Note).options(
         joinedload(models.Note.owner),
         joinedload(models.Note.comments),
-        joinedload(models.Note.favorites)
+        joinedload(models.Note.favorites),
+        joinedload(models.Note.liked_by)
     ).order_by(models.Note.id.desc()).all()
 
 
@@ -88,7 +86,8 @@ def get_note_by_id(db, note_id):
     return db.query(models.Note).options(
         joinedload(models.Note.comments),
         joinedload(models.Note.owner),
-        joinedload(models.Note.favorites)
+        joinedload(models.Note.favorites),
+        joinedload(models.Note.liked_by)
     ).filter(models.Note.id == note_id).first()
 
 
@@ -96,7 +95,8 @@ def get_user_notes(db, user_id):
     return db.query(models.Note).options(
         joinedload(models.Note.comments),
         joinedload(models.Note.owner),
-        joinedload(models.Note.favorites)
+        joinedload(models.Note.favorites),
+        joinedload(models.Note.liked_by)
     ).filter(models.Note.owner_id == user_id).order_by(models.Note.id.desc()).all()
 
 
@@ -126,11 +126,49 @@ def approve_note(db, note_id):
         db.commit()
 
 
-def like_note(db, note_id):
+def like_note(db, note_id, user_id):
+    existing_like = db.query(models.Like).filter(
+        models.Like.note_id == note_id,
+        models.Like.user_id == user_id
+    ).first()
+
+    if existing_like:
+        return False
+
     note = db.query(models.Note).get(note_id)
-    if note:
-        note.likes += 1
-        db.commit()
+    if not note:
+        return False
+
+    like = models.Like(user_id=user_id, note_id=note_id)
+    db.add(like)
+    note.likes += 1
+    db.commit()
+    return True
+
+
+def unlike_note(db, note_id, user_id):
+    existing_like = db.query(models.Like).filter(
+        models.Like.note_id == note_id,
+        models.Like.user_id == user_id
+    ).first()
+
+    if not existing_like:
+        return False
+
+    note = db.query(models.Note).get(note_id)
+    if note and note.likes > 0:
+        note.likes -= 1
+
+    db.delete(existing_like)
+    db.commit()
+    return True
+
+
+def has_user_liked(db, note_id, user_id):
+    return db.query(models.Like).filter(
+        models.Like.note_id == note_id,
+        models.Like.user_id == user_id
+    ).first() is not None
 
 
 def add_comment(db, note_id, text):
@@ -176,7 +214,8 @@ def get_favorites(db, user_id):
     return db.query(models.Favorite).options(
         joinedload(models.Favorite.note).joinedload(models.Note.owner),
         joinedload(models.Favorite.note).joinedload(models.Note.comments),
-        joinedload(models.Favorite.note).joinedload(models.Note.favorites)
+        joinedload(models.Favorite.note).joinedload(models.Note.favorites),
+        joinedload(models.Favorite.note).joinedload(models.Note.liked_by)
     ).filter(models.Favorite.user_id == user_id).all()
 
 
